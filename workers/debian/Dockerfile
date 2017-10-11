@@ -1,0 +1,88 @@
+FROM debian:9.2
+
+ARG BUILDBOT_VERSION
+LABEL buildbot-version=$BUILDBOT_VERSION
+
+USER root
+RUN dpkg --add-architecture i386 && \
+	apt-get update && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+# packager
+		rsync \
+		gzip \
+		xz-utils \
+# scummvm
+		g++ \
+		g++-multilib \
+		make \
+		ccache \
+		git \
+		libsdl2-dev \
+		libsdl2-2.0-0:i386 \
+		libsdl2-net-dev \
+		libsdl2-net-2.0-0:i386 \
+		libcurl4-openssl-dev \
+		libcurl3:i386 \
+		libjpeg62-turbo-dev \
+		libjpeg62-turbo-dev:i386 \
+		libmpeg2-4-dev \
+		libmpeg2-4-dev:i386 \
+		libvorbis-dev \
+		libvorbis-dev:i386 \
+		libtheora-dev \
+		libtheora-dev:i386 \
+		libflac-dev \
+		libflac-dev:i386 \
+		libmad0-dev \
+		libmad0:i386 \
+		libpng-dev \
+		libpng-dev:i386 \
+		libfaad-dev \
+		libfaad-dev:i386 \
+		libfluidsynth-dev \
+		libfluidsynth1:i386 \
+		libfreetype6-dev \
+		libfreetype6:i386 \
+		zlib1g-dev \
+		zlib1g-dev:i386 \
+# buildbot
+		adduser \
+		python-pip \
+		python-twisted \
+		python-openssl \
+		dumb-init \
+		&& \
+	useradd -ms /bin/bash -d /buildbot buildbot \
+# cache cleanup
+		&& \
+	rm -rf /var/lib/apt/lists/* \
+		&& \
+	apt-get clean
+
+RUN pip --no-cache-dir install \
+		buildbot-worker==$BUILDBOT_VERSION
+
+# HACK: multi-arch jessie packages for SDL cannot be installed side-by-side
+# because of an architecture conflict in its dependencies, so just extract
+# their libs so we can still link
+WORKDIR /tmp
+RUN apt-get update && \
+	apt-get download libsdl2-dev:i386 libsdl2-net-dev:i386 && \
+	dpkg --fsys-tarfile libsdl2-dev_*_i386.deb |tar --wildcards -C / -xf - './usr/lib/i386-linux-gnu/*' && \
+	dpkg --fsys-tarfile libsdl2-net-dev_*_i386.deb |tar --wildcards -C / -xf - './usr/lib/i386-linux-gnu/*' && \
+	rm libsdl2*.deb && \
+	rm -rf /var/lib/apt/lists/* && \
+	apt-get clean
+
+# TODO: Since whether or not a shared repository is used is determined by
+# the docker-compose.yml and not the image, it would be good to figure out
+# how to get the directory to be created with permissions that are usable
+# by the buildbot user without needing to make changes to the Dockerfile
+# like this.
+RUN mkdir -p /data/sharedrepo && chown buildbot:buildbot /data/sharedrepo
+
+USER buildbot
+WORKDIR /buildbot
+# buildbot.tac is copied verbatim from buildbot/buildbot-worker
+COPY buildbot.tac /buildbot
+CMD ["/usr/bin/dumb-init", "twistd", "-ny", "buildbot.tac"]

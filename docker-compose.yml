@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  buildbot:
+    image: scummvm-buildbot-master:latest
+    environment:
+      BUILDBOT_ADMIN_ROLE: scummvm
+      BUILDBOT_DATABASE: sqlite:////data/db/buildbot.sqlite
+      BUILDBOT_DEV_ENV: 1
+      BUILDBOT_IRC_USERNAME: GhostOfScummVM
+      BUILDBOT_IRC_CHANNEL: "##scummvm-testtest"
+      BUILDBOT_REPO_URL: https://github.com/csnover/scummvm.git
+      BUILDBOT_SITE_TITLE: ScummVM
+      BUILDBOT_SITE_URL: https://scummvm.org/
+      BUILDBOT_WEB_URL: https://buildbot.scummvm.org/
+      BUILDBOT_WEB_PORT: 28453 # B-U-I-L-D
+      BUILDBOT_WORKER_PORT: 28459 # B-U-I-L-W
+      SCUMMVM_SNAPSHOTS_DIR: /data/snapshots
+      SCUMMVM_SNAPSHOTS_URL: https://buildbot.scummvm.org/snapshots/
+    ports:
+      - "28453:28453"
+    volumes:
+      - database:/data/db
+      - snapshots:/data/snapshots
+
+  buildbot-debian: &defaultWorker
+    image: scummvm-buildbot-debian:latest
+    environment: &defaultEnv
+      BUILDMASTER: buildbot
+      BUILDMASTER_PORT: 28459
+      CCACHE_MAXSIZE: 1G
+      WORKERNAME: debian
+      WORKERPASS: worker
+      WORKER_HOST: build1
+      WORKER_REPO_DIR: /data/sharedrepo
+      WORKER_ENVIRONMENT_BLACKLIST: CONTAINER_HOST WORKER* BUILDMASTER* DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1*
+    links:
+      - buildbot
+    volumes:
+      - repository:/data/sharedrepo
+
+  # buildbot-amigaos:
+  #   <<: *defaultWorker
+  #   image: scummvm-buildbot-amigaos:latest
+  #   environment:
+  #     <<: *defaultEnv
+  #     WORKERNAME: amigaos
+
+volumes:
+  database:
+  repository:
+  snapshots:
