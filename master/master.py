@@ -109,6 +109,9 @@ def make_buildmaster_config():
     workers_dir = path.realpath(path.join(path.dirname(__file__), "../workers"))
 
     for worker_name in listdir(workers_dir):
+        if worker_name is "_template":
+            continue
+
         worker_config_filename = path.join(workers_dir, worker_name, "buildbot.cfg")
         if path.exists(worker_config_filename):
             try:
