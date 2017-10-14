@@ -5,7 +5,7 @@ import re
 
 from buildbot.data import resultspec
 from buildbot.process.results import SUCCESS
-from twisted.internet import defer
+from twisted.internet import defer, reactor
 
 from .builders import make_builders
 from .configurators import make_configurators
@@ -35,35 +35,68 @@ def make_builder_names(worker_configs):
 
     return builder_names
 
-@defer.inlineCallbacks
-def pick_builder(master, builders):
+class DebouncedBuilderPrioritizer:
     """
-    Prefer failed builders first.
+    BuildBot sends single builders to prioritizeBuilders, even when multiple
+    builders are eligible for a given changeset. To deal with this, we use a
+    simple time-based debouncer that collects all the builders and only
+    returns an actual list of builders to use to the build master once things
+    have settled down.
     """
-    builder_priorities = []
-    for builder in builders:
-        builder_id = yield builder.getBuilderId()
-        builds = yield master.data.get(("builds",),
-                                       filters=[resultspec.Filter("builderid", "eq", [builder_id]),
-                                                resultspec.Filter("complete", "eq", [True])],
-                                       order=["-number"],
-                                       limit=1)
+    timer = None
+    master = None
+    builders = {}
+    deferred = None
 
-        if builds and builds[0]['results'] == SUCCESS:
-            priority = 1
+    def __init__(self, timeout):
+        self.timeout = timeout
+
+    def debounce_prioritize(self, master, builders):
+        if self.timer:
+            self.timer.reset()
         else:
-            priority = 0
+            self.timer = reactor.callLater(self.timeout, self.commit)
+        if self.deferred:
+            self.deferred.callback([])
+        self.deferred = defer.Deferred()
+        self.master = master
+        for builder in builders:
+            self.builders[builder.name] = builder
+        return self.deferred
 
-        builder_priorities.append((builder, priority))
+    def commit(self):
+        self.timer = None
+        deferred = self.deferred
+        self.deferred = None
+        self.prioritize().chainDeferred(deferred)
 
-    def key_sort(builder):
-        for (candidate_builder, priority) in builder_priorities:
-            if builder is candidate_builder:
-                return priority
-        assert 0
+    @defer.inlineCallbacks
+    def prioritize(self):
+        """
+        Prefer failed builders first.
+        """
+        assert self.master
+        builder_priorities = []
+        for builder in self.builders.itervalues():
+            builder_id = yield builder.getBuilderId()
+            builds = yield self.master.data.get(("builds",),
+                                                filters=[resultspec.Filter("builderid", "eq", [builder_id]),
+                                                         resultspec.Filter("results", "ne", [None])],
+                                                order=["-number"],
+                                                limit=1)
 
-    builders.sort(key=key_sort)
-    defer.returnValue(builders)
+            if builds and builds[0]['results'] == SUCCESS:
+                priority = 1
+            else:
+                priority = 0
+
+            builder_priorities.append((builder, priority))
+
+        self.master = None
+        self.builders.clear()
+
+        builder_priorities.sort(key=lambda bp: bp[1])
+        defer.returnValue([bp[0] for bp in builder_priorities])
 
 def make_buildmaster_config():
     secrets = run_path(path.join(path.dirname(__file__), "_secrets.py"))
@@ -93,6 +126,8 @@ def make_buildmaster_config():
     assert repo_info
     (repo_id, project_id, org_id) = repo_info.group(1, 2, 3)
 
+    prioritizer = DebouncedBuilderPrioritizer(1.0)
+
     config = {
         "buildbotURL": environ.get("BUILDBOT_WEB_URL"),
         "buildbotNetUsageData": "basic",
@@ -102,7 +137,7 @@ def make_buildmaster_config():
                                   snapshots_url=environ.get("SCUMMVM_SNAPSHOTS_URL")),
         "configurators": make_configurators(),
         "db": make_database(environ.get("BUILDBOT_DATABASE")),
-        "prioritizeBuilders": pick_builder,
+        "prioritizeBuilders": prioritizer.debounce_prioritize,
         "protocols": make_protocols(worker_port),
         "schedulers": make_schedulers(make_builder_names(worker_configs), project_id, repo_id),
         "services": make_services(irc_username, secrets["irc_password"], irc_channel),
