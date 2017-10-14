@@ -4,19 +4,59 @@ services:
   buildbot:
     image: scummvm-buildbot-master:latest
     environment:
+      # The role used to allow access to administrative functions (manual
+      # builds, rebuilds, cancelling builds, etc.)
       BUILDBOT_ADMIN_ROLE: scummvm
+
+      # The URL for the buildmaster database. This should be placed on a
+      # persistent volume.
       BUILDBOT_DATABASE: sqlite:////data/db/buildbot.sqlite
-      BUILDBOT_DEV_ENV: 1
+
+      # If truthy, authentication is changed to use a basic authentication
+      # with the login 'user'/'pass' instead of the normal GitHub
+      # authentication.
+      BUILDBOT_DEV_ENV: 0
+
+      # The username for the IRC status bot. If the username is not provided,
+      # the IRC bot is disabled.
       BUILDBOT_IRC_USERNAME: GhostOfScummVM
+
+      # The IRC channel for the IRC status bot. If a channel is not provided,
+      # the IRC bot is disabled.
       BUILDBOT_IRC_CHANNEL: "##scummvm-testtest"
+
+      # The URL to the canonical source repository.
       BUILDBOT_REPO_URL: https://github.com/csnover/scummvm.git
+
+      # The name used for the title of the Builtbot site.
       BUILDBOT_SITE_TITLE: ScummVM
+
+      # The URL used to link back to the main web site.
       BUILDBOT_SITE_URL: https://scummvm.org/
+
+      # The publicly-accessible URL of the Buildbot web service.
       BUILDBOT_WEB_URL: https://buildbot.scummvm.org/
+
+      # The internal port used by the web service. Expose this through the host
+      # container using docker-compose ports configuration.
       BUILDBOT_WEB_PORT: 28453 # B-U-I-L-D
+
+      # The internal port used for master-worker communication. This does not
+      # need to be exposed unless non-local workers need to connect to the
+      # buildmaster. This must match the port given by `BUILDMASTER_PORT` below.
       BUILDBOT_WORKER_PORT: 28459 # B-U-I-L-W
+
+      # The default maximum number of snapshots that are maintained for a given
+      # builder. Individual builders can override this to maintain a different
+      # number of snapshots.
       SCUMMVM_SNAPSHOTS_DEFAULT_MAX: 2
+
+      # The directory on the buildmaster where snapshots should be stored. If a
+      # directory is not provided, snapshot packaging is disabled.
       SCUMMVM_SNAPSHOTS_DIR: /data/snapshots
+
+      # The publicly-accessible URL to the generated snapshots. If a URL is not
+      # provided, snapshot packaging is disabled.
       SCUMMVM_SNAPSHOTS_URL: https://buildbot.scummvm.org/snapshots/
     ports:
       - "28453:28453"
@@ -27,13 +67,42 @@ services:
   buildbot-debian: &defaultWorker
     image: scummvm-buildbot-debian:latest
     environment: &defaultEnv
+      # The IP address or hostname of the buildmaster.
       BUILDMASTER: buildbot
+
+      # The port used to connect to the buildmaster. This must match the port
+      # given by `BUILDBOT_WORKER_PORT` above.
       BUILDMASTER_PORT: 28459
+
+      # The maximum size of the worker's compiler cache.
       CCACHE_MAXSIZE: 1G
+
+      # The name of the worker. This is the name that will be used to generate
+      # the names of builders attached to this worker, as well as the name that
+      # is used when authenticating with the buildmaster.
       WORKERNAME: debian
+
+      # The password used for connecting to the buildmaster. This does not need
+      # to be secure unless the buildmaster's worker port is exposed to the
+      # internet, in which case it should be a strong password. This password
+      # must match the password given in `_secrets.py`.
       WORKERPASS: worker
+
+      # The name of the container's host. Currently, this value is unused, but
+      # in the future it will be used for exclusive locking of workers that
+      # run on the same container host.
       WORKER_HOST: build1
+
+      # The directory where shared repository data can be accessed. This
+      # directory must be writable by the `buildbot` user, which must currently
+      # be done by creating and `chown`ing the directory from the worker's
+      # Dockerfile.
       WORKER_REPO_DIR: /data/sharedrepo
+
+      # Environment variables with these names will not be exposed in the
+      # Buildbot worker. This functionality assuming you are using the standard
+      # `buildbot.tac` template, because this is the file responsible for
+      # clearing the environment variables when the Buildbot worker starts.
       WORKER_ENVIRONMENT_BLACKLIST: CONTAINER_HOST WORKERNAME WORKERPASS WORKER_ENVIRONMENT_BLACKLIST BUILDMASTER* DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1*
     links:
       - buildbot
