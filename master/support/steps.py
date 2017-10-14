@@ -124,7 +124,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         # if using a bundle target, then make puts everything we need
         # into a directory with the same name as the bundle_target;
         # otherwise we need to get the files ourselves
-        # TODO: Make Makefile always bundle with make bundle, and get
+        # TODO: Make Makefile always bundle with `make bundle`, and get
         # rid of this extra machinery just for CI
         if self.make_target is None:
             dist_files = yield self.send_command(command=["make", "print-dists"],
