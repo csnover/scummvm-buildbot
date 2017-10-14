@@ -56,7 +56,7 @@ def pick_next_build(_, build_requests):
             best_request = request
     return best_request
 
-def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir=None, snapshots_url=None):
+def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir, snapshots_url, snapshots_default_max):
     if snapshots_dir and snapshots_dir[-1] is not "/":
         snapshots_dir += "/"
     if snapshots_url and snapshots_url[-1] is not "/":
@@ -146,7 +146,8 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
         builder.addStep(MasterCleanSnapshots(name="clean old snapshots",
                                              workdir=snapshots_dir,
                                              file_prefix=Interpolate("%(prop:buildername)s-"),
-                                             num_to_keep=Property("num_snapshots_to_keep", 2),
+                                             num_to_keep=Property("num_snapshots_to_keep",
+                                                                  snapshots_default_max),
                                              doStepIf=should_package))
 
     return util.BuilderConfig(name=name,
@@ -156,7 +157,7 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                               nextBuild=pick_next_build,
                               locks=[lock.access("exclusive")])
 
-def make_builders(repo_url, worker_configs, snapshots_dir=None, snapshots_url=None):
+def make_builders(repo_url, worker_configs, snapshots_dir=None, snapshots_url=None, snapshots_default_max=2):
     # TODO: Use one lock per container host; for now we have only one container
     # host so we just use a single lock. One lock per worker is not good enough
     # since many workers may run on a single container host and this should block
@@ -179,6 +180,7 @@ def make_builders(repo_url, worker_configs, snapshots_dir=None, snapshots_url=No
                                                 config=builder_config,
                                                 lock=master_lock,
                                                 snapshots_dir=snapshots_dir,
-                                                snapshots_url=snapshots_url))
+                                                snapshots_url=snapshots_url,
+                                                snapshots_default_max=snapshots_default_max))
 
     return builders

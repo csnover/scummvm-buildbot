@@ -15,6 +15,7 @@ services:
       BUILDBOT_WEB_URL: https://buildbot.scummvm.org/
       BUILDBOT_WEB_PORT: 28453 # B-U-I-L-D
       BUILDBOT_WORKER_PORT: 28459 # B-U-I-L-W
+      SCUMMVM_SNAPSHOTS_DEFAULT_MAX: 2
       SCUMMVM_SNAPSHOTS_DIR: /data/snapshots
       SCUMMVM_SNAPSHOTS_URL: https://buildbot.scummvm.org/snapshots/
     ports:
