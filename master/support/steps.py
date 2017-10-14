@@ -1,10 +1,31 @@
-from os import path
+from os import listdir, lstat, path, unlink
 
 from buildbot.plugins import steps
 from buildbot.status import builder
 from buildbot.process.buildstep import BuildStep, BuildStepFailed, ShellMixin
+from buildbot.process.remotecommand import RemoteShellCommand
 from buildbot.steps.worker import CompositeStepMixin
 from twisted.internet import defer
+
+class CleaningFileUpload(steps.FileUpload):
+    name = "CleaningFileUpload"
+    descriptionDone = "uploaded"
+
+    def __init__(self, clean=False, **kwargs):
+        super(CleaningFileUpload, self).__init__(**kwargs)
+        self.clean = clean
+
+    @defer.inlineCallbacks
+    def finished(self, results):
+        if self.clean:
+            cmd = RemoteShellCommand(command=["rm", self.workersrc],
+                                     workdir=self.workdir,
+                                     logEnviron=False)
+            yield self.runCommand(cmd)
+            if cmd.didFail():
+                results = builder.WARNINGS
+        return_value = yield super(CleaningFileUpload, self).finished(results)
+        defer.returnValue(return_value)
 
 class FileExistsSetProperty(steps.FileExists):
     name = "FileExistsSetProperty"
@@ -17,6 +38,48 @@ class FileExistsSetProperty(steps.FileExists):
     def commandComplete(self, cmd):
         self.setProperty(self.property, not cmd.didFail(), self.name)
         self.finished(builder.SUCCESS)
+
+class MasterCleanSnapshots(BuildStep):
+    name = "MasterCleanSnapshots"
+    description = "cleaning"
+    descriptionDone = "cleaned"
+    flunkOnFailure = False
+    stopOnFailure = False
+    warnOnFailure = True
+
+    renderables = ["file_prefix", "num_to_keep"]
+
+    def __init__(self, file_prefix, num_to_keep, **kwargs):
+        super(MasterCleanSnapshots, self).__init__(**kwargs)
+        self.file_prefix = file_prefix
+        self.num_to_keep = num_to_keep
+
+    @defer.inlineCallbacks
+    def run(self):
+        self.updateSummary()
+        log = yield self.addLog("log", "t")
+
+        matches = []
+        log.addContent(u"Looking for candidates matching %s*\n" % self.file_prefix)
+        for file_name in listdir(self.workdir):
+            file_path = path.join(self.workdir, file_name)
+            if path.islink(file_path):
+                continue
+            if path.isfile(file_path) and file_name.startswith(self.file_prefix):
+                log.addContent(u"Matched %s\n" % file_name)
+                created_at = path.getctime(file_path)
+                matches.append((created_at, file_path))
+
+        matches.sort(key=lambda match: match[0])
+        if len(matches) > self.num_to_keep:
+            for (_, file_path) in matches[:-self.num_to_keep]:
+                log.addContent(u"Unlinking %s\n" % path.basename(file_path))
+                unlink(file_path)
+        else:
+            log.addContent("Already clean\n")
+
+        self.descriptionDone = "cleaned %d files" % max(0, len(matches) - self.num_to_keep)
+        defer.returnValue(builder.SUCCESS)
 
 class Package(BuildStep, ShellMixin, CompositeStepMixin):
     name = "package"

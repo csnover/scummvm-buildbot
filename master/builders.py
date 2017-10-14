@@ -1,7 +1,7 @@
 from os import path
 
 from buildbot.plugins import steps, util
-from .support.steps import FileExistsSetProperty, Package
+from .support.steps import CleaningFileUpload, FileExistsSetProperty, MasterCleanSnapshots, Package
 Interpolate = util.Interpolate
 Property = util.Property
 
@@ -133,16 +133,21 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
         target_link = Interpolate("%s%%(prop:buildername)s-latest."
                                   "%%(prop:package_archive_format:-tar.xz)s" % snapshots_dir)
 
-        builder.addStep(steps.FileUpload(name="publish",
-                                         workersrc=source_path,
-                                         masterdest=target_path,
-                                         url=target_url,
-                                         doStepIf=should_package))
-        # TODO: Remove archive from worker after the upload
+        builder.addStep(CleaningFileUpload(name="publish",
+                                           workersrc=source_path,
+                                           masterdest=target_path,
+                                           url=target_url,
+                                           clean=True,
+                                           doStepIf=should_package))
         builder.addStep(steps.MasterShellCommand(name="update latest archive",
                                                  command=["ln", "-sf", target_path, target_link],
                                                  logEnviron=False,
                                                  doStepIf=should_package))
+        builder.addStep(MasterCleanSnapshots(name="clean old snapshots",
+                                             workdir=snapshots_dir,
+                                             file_prefix=Interpolate("%(prop:buildername)s-"),
+                                             num_to_keep=Property("num_snapshots_to_keep", 2),
+                                             doStepIf=should_package))
 
     return util.BuilderConfig(name=name,
                               workername=worker_name,
