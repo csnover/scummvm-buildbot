@@ -52,6 +52,10 @@ class DebouncedBuilderPrioritizer:
         self.timeout = timeout
 
     def debounce_prioritize(self, master, builders):
+        # Don't debounce any of the system-generated builders
+        if len(builders) == 1 and builders[0].name.startswith("__"):
+            return defer.succeed(builders)
+
         if self.timer:
             self.timer.reset()
         else:
