@@ -33,7 +33,7 @@ class FileExistsSetProperty(steps.FileExists):
 
     def __init__(self, property, file, **kwargs):
         self.property = property
-        steps.FileExists.__init__(self, file, **kwargs)
+        super(FileExistsSetProperty, self).__init__(file, **kwargs)
 
     def commandComplete(self, cmd):
         self.setProperty(self.property, not cmd.didFail(), self.name)
@@ -92,7 +92,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
 
     def __init__(self, package_name, package_format="tar.xz", make_target=None, strip_binaries=False, **kwargs):
         kwargs = self.setupShellMixin(kwargs, prohibitArgs=["command"])
-        BuildStep.__init__(self, **kwargs)
+        super(Package, self).__init__(**kwargs)
         self.package_name = package_name
         self.package_format = package_format
         self.make_target = make_target
