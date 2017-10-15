@@ -1,3 +1,4 @@
+from future.utils import iteritems
 from os import path
 
 from buildbot.plugins import steps, util
@@ -175,8 +176,8 @@ def make_builders(repo_url, worker_configs, snapshots_dir=None, snapshots_url=No
     master_lock = util.WorkerLock("build1", maxCount=1)
 
     builders = []
-    for (worker_name, worker_config) in worker_configs.iteritems():
-        for (builder_name, builder_config) in worker_config["builders"].iteritems():
+    for (worker_name, worker_config) in iteritems(worker_configs):
+        for (builder_name, builder_config) in iteritems(worker_config["builders"]):
             # Workers with only one builder give it a blank name
             if not builder_name:
                 builder_name = worker_name

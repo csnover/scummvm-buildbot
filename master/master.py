@@ -1,3 +1,4 @@
+from future.utils import iteritems, itervalues
 from os import environ, listdir, path
 from logging import warning
 from runpy import run_path
@@ -25,8 +26,8 @@ def maybe_int(value):
 
 def make_builder_names(worker_configs):
     builder_names = []
-    for (worker_name, worker_config) in worker_configs.iteritems():
-        for builder_name in worker_config["builders"].keys():
+    for (worker_name, worker_config) in iteritems(worker_configs):
+        for builder_name in list(worker_config["builders"]):
             if not builder_name:
                 builder_name = worker_name
             else:
@@ -82,7 +83,7 @@ class DebouncedBuilderPrioritizer:
         """
         assert self.master
         builder_priorities = []
-        for builder in self.builders.itervalues():
+        for builder in itervalues(self.builders):
             builder_id = yield builder.getBuilderId()
             builds = yield self.master.data.get(("builds",),
                                                 filters=[resultspec.Filter("builderid", "eq", [builder_id]),
@@ -164,7 +165,7 @@ def make_buildmaster_config():
         "services": make_services(irc_username, secrets["irc_password"], irc_channel),
         "title": environ.get("BUILDBOT_SITE_TITLE"),
         "titleURL": environ.get("BUILDBOT_SITE_URL"),
-        "workers": make_workers(worker_configs.keys(), secrets),
+        "workers": make_workers(list(worker_configs), secrets),
         "www": make_www(environ.get("BUILDBOT_WEB_PORT"), admin_role, secrets, is_dev_env)
     }
 
