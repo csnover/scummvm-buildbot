@@ -20,7 +20,7 @@ Individual worker configurations are in `workers` subdirectories.
 * Successful builds are automatically packaged and uploaded for immediate
   consumption
 * Workers may optionally share a single Git repository
-* Builds are parallelised across all CPU cores of the host machine
+* Builds automatically scale across all CPU cores of the host machine
 
 ## Building images
 
