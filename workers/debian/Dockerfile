@@ -1,9 +1,13 @@
-FROM debian:9.2
+ARG DEFAULT_BASE_IMAGE
+FROM ${DEFAULT_BASE_IMAGE}
 
 ARG BUILDBOT_VERSION
-LABEL buildbot-version=$BUILDBOT_VERSION
+LABEL buildbot-version=${BUILDBOT_VERSION}
 
-USER root
+RUN useradd -ms /bin/bash -d /buildbot buildbot
+
+RUN mkdir -p /data/sharedrepo && chown buildbot:buildbot /data/sharedrepo
+
 RUN dpkg --add-architecture i386 && \
 	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -46,18 +50,13 @@ RUN dpkg --add-architecture i386 && \
 		zlib1g-dev \
 		zlib1g-dev:i386 \
 # buildbot
-		adduser \
 		python-pip \
 		python-twisted \
 		python-openssl \
 		dumb-init \
 		&& \
-	useradd -ms /bin/bash -d /buildbot buildbot \
 # cache cleanup
-		&& \
-	rm -rf /var/lib/apt/lists/* \
-		&& \
-	apt-get clean
+	rm -rf /var/lib/apt/lists/*
 
 RUN pip --no-cache-dir install \
 		buildbot-worker==$BUILDBOT_VERSION
@@ -73,13 +72,6 @@ RUN apt-get update && \
 	rm libsdl2*.deb && \
 	rm -rf /var/lib/apt/lists/* && \
 	apt-get clean
-
-# TODO: Since whether or not a shared repository is used is determined by
-# the docker-compose.yml and not the image, it would be good to figure out
-# how to get the directory to be created with permissions that are usable
-# by the buildbot user without needing to make changes to the Dockerfile
-# like this.
-RUN mkdir -p /data/sharedrepo && chown buildbot:buildbot /data/sharedrepo
 
 USER buildbot
 WORKDIR /buildbot

@@ -19,6 +19,7 @@ build_worker () {
     cd "$worker_dir"
     echo "Building worker $worker_name"
     docker build . -t "scummvm-buildbot-$worker_name" \
+        --build-arg "DEFAULT_BASE_IMAGE=$default_base_image" \
         --build-arg "BUILDBOT_VERSION=$buildbot_version"
     cd "$root_dir"
 }
@@ -34,6 +35,7 @@ if [ $# -gt 0 -a "$1" == "--no-master" ]; then
     shift
 fi
 
+default_base_image="debian:9.2"
 buildbot_version=$(sed -n 's/FROM.*buildbot-master:v\{0,1\}\([^[:space:]]\)/\1/p' Dockerfile)
 root_dir=$(pwd)
 
