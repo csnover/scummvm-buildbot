@@ -18,6 +18,8 @@ RUN dpkg --add-architecture i386 && \
 # scummvm
 		g++ \
 		g++-multilib \
+		g++-mingw-w64 \
+		clang \
 		make \
 		ccache \
 		git \
