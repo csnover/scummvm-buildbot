@@ -3,9 +3,8 @@
 This Buildbot uses [Docker](https://www.docker.com/).
 
 The buildmaster’s configuration is in `master`, with a stub `master.cfg` in the
-root (due to limitations of Docker, and the desire to keep worker configurations
-self-encapsulated in the `workers` subdirectory). The buildmaster Dockerfile is
-in the root.
+root (due to limitations of Docker, and the desire to keep workers encapsulated
+in the `workers` subdirectory).
 
 Individual worker configurations are in `workers` subdirectories.
 
@@ -20,22 +19,28 @@ Individual worker configurations are in `workers` subdirectories.
 * Successful builds are automatically packaged and uploaded for immediate
   consumption
 * Workers may optionally share a single Git repository
-* Builds automatically scale across all CPU cores of the host machine
+* Builds automatically scale across all available CPU cores
 
 ## Building images
 
-Run the provided `build-images.sh` script. Run `build-images.sh --help` for
-usage information.
+The buildmaster’s `Dockerfile` is in the root. Each worker’s `Dockerfile` is in
+its own subdirectory in `workers`.
+
+Run the provided `build-images.sh` script to build images from source. Run
+`build-images.sh --help` for usage information.
 
 ## Configuring Buildbot
 
-All configuration for the buildmaster can be done by editing the
+All normally configurable options for the buildmaster are exposed in the
 `docker-compose.yml` file, which is used to deploy the build system.
-Configurable options should always be exposed to `docker-compose`, rather than
-being hard-coded into the buildmaster’s Python code.
+
+When making changes to the buildmaster, configurable options should be exposed
+to `docker-compose` in a similar manner, rather than being hard-coded into the
+buildmaster’s Python code.
 
 Secret keys for the buildmaster should be set in a `secrets.cfg` file next to
-the `master.cfg` file in the root:
+the `master.cfg` file in the root. The secret file is a Python module with these
+keys:
 
 * `github_client_id`: The client ID for the ScummVM OAuth app on GitHub that is
   used for authentication.
@@ -48,20 +53,21 @@ the `master.cfg` file in the root:
 
 ## Deploying
 
-Run `docker-compose up` after building images to stand up the Buildbot swarm.
+Run `docker-compose up -d` after building images to stand up the Buildbot
+cluster.
 
 ## Upgrading Buildbot
 
-Change the version number in the master `Dockerfile` to upgrade Buildbot. Worker
-images will install this version of Buildbot as well, when you generate images
-with `build-images.sh`.
+Change the version number in the buildmaster’s `Dockerfile` to upgrade Buildbot.
+Worker images will also use this version when you generate images with
+`build-images.sh`.
 
 ## Adding new workers
 
 * Create a new directory in `workers`. The name of the directory will be used as
   the name of the worker.
 * Copy template files from `workers/_template` to the new worker’s subdirectory.
-* Edit the copied files appropriately. The Dockerfile should install the
+* Edit the copied files appropriately. The `Dockerfile` should install the
   cross-compiler and ScummVM dependencies for the target platform, the Buildbot
   worker and its dependencies, and configure the environment’s `PATH`
   appropriately for the cross-compiler. Please take care to delete any temporary
