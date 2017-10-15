@@ -93,8 +93,9 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
     def __init__(self, package_name, package_format="tar.xz", make_target=None, strip_binaries=False, **kwargs):
         kwargs = self.setupShellMixin(kwargs, prohibitArgs=["command"])
         super(Package, self).__init__(**kwargs)
+        assert package_name
         self.package_name = package_name
-        self.package_format = package_format
+        self.package_format = package_format or "tar.xz"
         self.make_target = make_target
         self.strip_binaries = strip_binaries
 
