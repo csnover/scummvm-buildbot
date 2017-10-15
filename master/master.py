@@ -108,7 +108,8 @@ def make_buildmaster_config():
     secrets = run_path(path.join(path.dirname(__file__), "..", "secrets.cfg"))
 
     worker_configs = {}
-    workers_dir = path.realpath(path.join(path.dirname(__file__), "..", "workers"))
+    workers_dir = environ.get("BUILDBOT_WORKER_CONFIG_DIR",
+                              path.join(path.dirname(__file__), "..", "worker"))
 
     for worker_name in listdir(workers_dir):
         if worker_name == "_template":

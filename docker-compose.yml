@@ -41,6 +41,10 @@ services:
       # container using docker-compose ports configuration.
       BUILDBOT_WEB_PORT: 28453 # B-U-I-L-D
 
+      # The location of worker configuration files. Relative paths are relative
+      # to the directory containing master.cfg.
+      BUILDBOT_WORKER_CONFIG_DIR: master/workers
+
       # The internal port used for master-worker communication. This does not
       # need to be exposed unless non-local workers need to connect to the
       # buildmaster. This must match the port given by `BUILDMASTER_PORT` below.
