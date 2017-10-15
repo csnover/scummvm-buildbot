@@ -27,11 +27,12 @@ LABEL buildbot-version=${BUILDBOT_VERSION}
 # commands on the worker.
 RUN useradd -ms /bin/bash -d /buildbot buildbot
 
-# If you want the worker to use the shared Git repository, the persistent data
-# directory needs to be set up here and its permissions set appropriately so it
-# can be written to by buildbot. Any other mount points for persistent data also
-# need to be created here like this.
-RUN mkdir -p /data/sharedrepo && chown buildbot:buildbot /data/sharedrepo
+# If you want the worker to use the shared Git repository, or the persistent
+# compilation cache, the persistent data directories need to be set up here and
+# permissions set appropriately so they can be written to by buildbot. Any other
+# mount points for persistent data also need to be created here like this.
+RUN mkdir -p /data/ccache /data/sharedrepo && \
+    chown buildbot:buildbot /data/ccache /data/sharedrepo
 
 # All system packages should be installed here.
 #

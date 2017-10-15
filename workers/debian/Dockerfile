@@ -6,7 +6,8 @@ LABEL buildbot-version=${BUILDBOT_VERSION}
 
 RUN useradd -ms /bin/bash -d /buildbot buildbot
 
-RUN mkdir -p /data/sharedrepo && chown buildbot:buildbot /data/sharedrepo
+RUN mkdir -p /data/ccache /data/sharedrepo && \
+    chown buildbot:buildbot /data/ccache /data/sharedrepo
 
 RUN dpkg --add-architecture i386 && \
 	apt-get update && \

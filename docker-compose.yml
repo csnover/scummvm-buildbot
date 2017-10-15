@@ -74,6 +74,9 @@ services:
       # given by `BUILDBOT_WORKER_PORT` above.
       BUILDMASTER_PORT: 28459
 
+      # The location of the worker's compiler cache.
+      CCACHE_DIR: /data/ccache/debian
+
       # The maximum size of the worker's compiler cache.
       CCACHE_MAXSIZE: 1G
 
@@ -107,6 +110,7 @@ services:
     links:
       - buildbot
     volumes:
+      - ccache:/data/ccache
       - repository:/data/sharedrepo
 
   # buildbot-amigaos:
@@ -117,6 +121,7 @@ services:
   #     WORKERNAME: amigaos
 
 volumes:
+  ccache:
   database:
   repository:
   snapshots:
