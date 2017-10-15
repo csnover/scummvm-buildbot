@@ -7,7 +7,7 @@ CodebaseParameter = util.CodebaseParameter
 StringParameter = util.StringParameter
 
 def file_is_important(change):
-    # Ignore changes to non-source-code, non-make, non-engine-config files
+    # TODO: Ignore changes to non-source-code, non-make, non-engine-config files
     return True
 
 def make_schedulers(builder_names, project_id, repository_id):
