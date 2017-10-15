@@ -4,11 +4,6 @@ FROM ${DEFAULT_BASE_IMAGE}
 ARG BUILDBOT_VERSION
 LABEL buildbot-version=${BUILDBOT_VERSION}
 
-RUN useradd -ms /bin/bash -d /buildbot buildbot
-
-RUN mkdir -p /data/ccache /data/sharedrepo && \
-    chown buildbot:buildbot /data/ccache /data/sharedrepo
-
 RUN dpkg --add-architecture i386 && \
 	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -73,6 +68,11 @@ RUN apt-get update && \
 	rm libsdl2*.deb && \
 	rm -rf /var/lib/apt/lists/* && \
 	apt-get clean
+
+RUN useradd -ms /bin/bash -d /buildbot -u 2845 -U buildbot
+
+RUN mkdir -p /data/ccache /data/sharedrepo && \
+    chown buildbot:buildbot /data/ccache /data/sharedrepo
 
 USER buildbot
 WORKDIR /buildbot

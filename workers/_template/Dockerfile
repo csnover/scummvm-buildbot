@@ -2,8 +2,10 @@
 # options when configuring your worker.
 
 # When writing the Dockerfile, where possible, put operations most likely to
-# change toward the end of the file. When an operation changes, it invalidates
-# the caches of all successive operations as well.
+# change toward the end of the file, followed by inexpensive operations. When an
+# operation changes, it invalidates the caches of all successive operations as
+# well, so reducing the number and complexity of invalidated operations is
+# important when rebuilding images.
 
 # Choose the base image for use by the worker. Using the same default base image
 # is best, if possible, since this data can then be shared by all workers.
@@ -70,7 +72,7 @@ RUN pip --no-cache-dir install \
 # script. Per convention, put the home directory at `/buildbot` instead of in
 # its default place. Buildbot also needs a valid shell for executing shell
 # commands on the worker.
-RUN useradd -ms /bin/bash -d /buildbot buildbot
+RUN useradd -ms /bin/bash -d /buildbot -u 2845 -U buildbot
 
 # If you want the worker to use the shared Git repository, or the persistent
 # compilation cache, the persistent data directories need to be set up here and
