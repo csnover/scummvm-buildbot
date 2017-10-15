@@ -8,6 +8,7 @@ from buildbot.process.results import SUCCESS
 from twisted.internet import defer, reactor
 
 from .builders import make_builders
+from .caches import make_caches
 from .configurators import make_configurators
 from .database import make_database
 from .protocols import make_protocols
@@ -143,6 +144,7 @@ def make_buildmaster_config():
                                   snapshots_dir=environ.get("SCUMMVM_SNAPSHOTS_DIR"),
                                   snapshots_url=environ.get("SCUMMVM_SNAPSHOTS_URL"),
                                   snapshots_default_max=environ.get("SCUMMVM_SNAPSHOTS_DEFAULT_MAX", 2)),
+        "caches": make_caches(),
         "configurators": make_configurators(),
         "db": make_database(environ.get("BUILDBOT_DATABASE")),
         "prioritizeBuilders": prioritizer.debounce_prioritize,
