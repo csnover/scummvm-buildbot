@@ -107,7 +107,7 @@ def make_buildmaster_config():
     secrets = run_path(path.join(path.dirname(__file__), "_secrets.py"))
 
     worker_configs = {}
-    workers_dir = path.realpath(path.join(path.dirname(__file__), "../workers"))
+    workers_dir = path.realpath(path.join(path.dirname(__file__), "..", "workers"))
 
     for worker_name in listdir(workers_dir):
         if worker_name is "_template":
@@ -123,16 +123,27 @@ def make_buildmaster_config():
             except Exception, e:
                 warning("Could not load configuration for worker %s: %s", worker_name, e)
 
-    worker_port = maybe_int(environ.get("BUILDBOT_WORKER_PORT", 28459))
-    is_dev_env = environ.get("BUILDBOT_DEV_ENV", False)
-    irc_username = environ.get("BUILDBOT_IRC_USERNAME")
-    irc_channel = environ.get("BUILDBOT_IRC_CHANNEL")
-
     repo_url = environ.get("BUILDBOT_REPO_URL")
     assert repo_url
     repo_info = re.match(r"^(.*?(([^/]+)\/([^/]+)))\.git$", repo_url)
     assert repo_info
     (repo_id, project_id, org_id) = repo_info.group(1, 2, 3)
+
+    worker_port = maybe_int(environ.get("BUILDBOT_WORKER_PORT", 28459))
+    is_dev_env = environ.get("BUILDBOT_DEV_ENV", False)
+    irc_username = environ.get("BUILDBOT_IRC_USERNAME")
+    irc_channel = environ.get("BUILDBOT_IRC_CHANNEL")
+    snapshots_default_max = environ.get("SCUMMVM_SNAPSHOTS_DEFAULT_MAX", 2)
+    admin_role = environ.get("BUILDBOT_ADMIN_ROLE", org_id)
+
+    required_secrets = ["github_hook_secret", "worker_password"]
+    if is_dev_env is not True:
+        required_secrets += ["github_client_id", "github_client_secret"]
+    if irc_username and irc_channel:
+        required_secrets.append("irc_password")
+    for key in required_secrets:
+        if key not in secrets:
+            raise KeyError("Required key '%s' is missing from secrets configuration" % key)
 
     prioritizer = DebouncedBuilderPrioritizer(1.0)
 
@@ -143,7 +154,7 @@ def make_buildmaster_config():
                                   worker_configs=worker_configs,
                                   snapshots_dir=environ.get("SCUMMVM_SNAPSHOTS_DIR"),
                                   snapshots_url=environ.get("SCUMMVM_SNAPSHOTS_URL"),
-                                  snapshots_default_max=environ.get("SCUMMVM_SNAPSHOTS_DEFAULT_MAX", 2)),
+                                  snapshots_default_max=snapshots_default_max),
         "caches": make_caches(),
         "configurators": make_configurators(),
         "db": make_database(environ.get("BUILDBOT_DATABASE")),
@@ -154,7 +165,7 @@ def make_buildmaster_config():
         "title": environ.get("BUILDBOT_SITE_TITLE"),
         "titleURL": environ.get("BUILDBOT_SITE_URL"),
         "workers": make_workers(worker_configs.keys(), secrets),
-        "www": make_www(environ.get("BUILDBOT_WEB_PORT"), environ.get("BUILDBOT_ADMIN_ROLE", org_id), secrets, is_dev_env)
+        "www": make_www(environ.get("BUILDBOT_WEB_PORT"), admin_role, secrets, is_dev_env)
     }
 
     return config
