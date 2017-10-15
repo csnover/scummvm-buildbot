@@ -105,11 +105,12 @@ class DebouncedBuilderPrioritizer:
         defer.returnValue([bp[0] for bp in builder_priorities])
 
 def make_buildmaster_config():
-    secrets = run_path(path.join(path.dirname(__file__), "..", "secrets.cfg"))
+    secrets = run_path(environ.get("SCUMMVM_SECRETS_FILE",
+                                   path.join(path.dirname(__file__), "..", "secrets.cfg")))
 
     worker_configs = {}
-    workers_dir = environ.get("BUILDBOT_WORKER_CONFIG_DIR",
-                              path.join(path.dirname(__file__), "..", "worker"))
+    workers_dir = environ.get("SCUMMVM_WORKER_CONFIG_DIR",
+                              path.join(path.dirname(__file__), "..", "workers"))
 
     for worker_name in listdir(workers_dir):
         if worker_name == "_template":
@@ -131,12 +132,12 @@ def make_buildmaster_config():
     assert repo_info
     (repo_id, project_id, org_id) = repo_info.group(1, 2, 3)
 
-    worker_port = maybe_int(environ.get("BUILDBOT_WORKER_PORT", 28459))
-    is_dev_env = bool(int(environ.get("BUILDBOT_DEV_ENV", False)))
-    irc_username = environ.get("BUILDBOT_IRC_USERNAME")
-    irc_channel = environ.get("BUILDBOT_IRC_CHANNEL")
-    snapshots_default_max = int(environ.get("SCUMMVM_SNAPSHOTS_DEFAULT_MAX", 2))
     admin_role = environ.get("BUILDBOT_ADMIN_ROLE", org_id)
+    irc_channel = environ.get("BUILDBOT_IRC_CHANNEL")
+    irc_username = environ.get("BUILDBOT_IRC_USERNAME")
+    worker_port = maybe_int(environ.get("BUILDBOT_WORKER_PORT", 28459))
+    is_dev_env = bool(int(environ.get("SCUMMVM_DEV_ENV", False)))
+    snapshots_default_max = int(environ.get("SCUMMVM_SNAPSHOTS_DEFAULT_MAX", 2))
 
     required_secrets = ["github_hook_secret", "worker_password"]
     if is_dev_env is not True:
