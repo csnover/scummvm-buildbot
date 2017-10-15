@@ -98,11 +98,13 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                                                  description="getting CPU count",
                                                  descriptionDone="got CPU count"))
 
-    compiler_warning_pattern = Property("compiler_warning_pattern",
-                                        r"^([^:]+):(\d+):(?:\d+:)? [Ww]arning: (.*)$")
+    # In at least Buildbot 0.9.12, warningPattern and suppressionList are not
+    # renderable, so just get the properties from the config file immediately
+    compiler_warning_pattern = config.get("compiler_warning_pattern",
+                                          r"^([^:]+):(\d+):(?:\d+:)? [Ww]arning: (.*)$")
     compiler_warning_extractor = steps.Compile.warnExtractFromRegexpGroups
     compiler_suppression_file = Property("compiler_suppression_file", None)
-    compiler_suppression_list = Property("compiler_suppression_list", None)
+    compiler_suppression_list = config.get("compiler_suppression_list", None)
 
     builder.addStep(steps.Compile(command=["make", Interpolate("-j%(prop:cpu_count:~1)s")],
                                   env=compilation_environment,

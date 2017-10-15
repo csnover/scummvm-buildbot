@@ -130,10 +130,10 @@ def make_buildmaster_config():
     (repo_id, project_id, org_id) = repo_info.group(1, 2, 3)
 
     worker_port = maybe_int(environ.get("BUILDBOT_WORKER_PORT", 28459))
-    is_dev_env = environ.get("BUILDBOT_DEV_ENV", False)
+    is_dev_env = bool(int(environ.get("BUILDBOT_DEV_ENV", False)))
     irc_username = environ.get("BUILDBOT_IRC_USERNAME")
     irc_channel = environ.get("BUILDBOT_IRC_CHANNEL")
-    snapshots_default_max = environ.get("SCUMMVM_SNAPSHOTS_DEFAULT_MAX", 2)
+    snapshots_default_max = int(environ.get("SCUMMVM_SNAPSHOTS_DEFAULT_MAX", 2))
     admin_role = environ.get("BUILDBOT_ADMIN_ROLE", org_id)
 
     required_secrets = ["github_hook_secret", "worker_password"]
