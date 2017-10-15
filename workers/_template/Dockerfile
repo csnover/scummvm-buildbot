@@ -19,21 +19,6 @@ LABEL maintainer="ScummVM Team <admin@scummvm.org>"
 ARG BUILDBOT_VERSION
 LABEL buildbot-version=${BUILDBOT_VERSION}
 
-# Create the unprivileged user and home directory which will be used by
-# Buildbot. This home directory is where all of the working directories for each
-# builder will be created (one subdirectory per builder), plus the startup
-# script. Per convention, put the home directory at `/buildbot` instead of in
-# its default place. Buildbot also needs a valid shell for executing shell
-# commands on the worker.
-RUN useradd -ms /bin/bash -d /buildbot buildbot
-
-# If you want the worker to use the shared Git repository, or the persistent
-# compilation cache, the persistent data directories need to be set up here and
-# permissions set appropriately so they can be written to by buildbot. Any other
-# mount points for persistent data also need to be created here like this.
-RUN mkdir -p /data/ccache /data/sharedrepo && \
-    chown buildbot:buildbot /data/ccache /data/sharedrepo
-
 # All system packages should be installed here.
 #
 # The following system libraries/utilities are required for Buildbot:
@@ -78,6 +63,21 @@ RUN apt-get update && \
 # using pip.
 RUN pip --no-cache-dir install \
 		buildbot-worker==${BUILDBOT_VERSION}
+
+# Create the unprivileged user and home directory which will be used by
+# Buildbot. This home directory is where all of the working directories for each
+# builder will be created (one subdirectory per builder), plus the startup
+# script. Per convention, put the home directory at `/buildbot` instead of in
+# its default place. Buildbot also needs a valid shell for executing shell
+# commands on the worker.
+RUN useradd -ms /bin/bash -d /buildbot buildbot
+
+# If you want the worker to use the shared Git repository, or the persistent
+# compilation cache, the persistent data directories need to be set up here and
+# permissions set appropriately so they can be written to by buildbot. Any other
+# mount points for persistent data also need to be created here like this.
+RUN mkdir -p /data/ccache /data/sharedrepo && \
+    chown buildbot:buildbot /data/ccache /data/sharedrepo
 
 # The rest of this is boilerplate that you should be able to leave alone. Only
 # if dumb-init was not installed from the system's package manager, or you must
