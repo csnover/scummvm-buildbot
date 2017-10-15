@@ -1,3 +1,4 @@
+# Changes to the Buildbot version here will be picked up by build-images.sh
 FROM buildbot/buildbot-master:v0.9.12
 RUN apk add --no-cache py-requests py-certifi
 COPY master.cfg /var/lib/buildbot
