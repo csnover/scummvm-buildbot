@@ -104,7 +104,7 @@ class DebouncedBuilderPrioritizer:
         defer.returnValue([bp[0] for bp in builder_priorities])
 
 def make_buildmaster_config():
-    secrets = run_path(path.join(path.dirname(__file__), "_secrets.py"))
+    secrets = run_path(path.join(path.dirname(__file__), "..", "secrets.cfg"))
 
     worker_configs = {}
     workers_dir = path.realpath(path.join(path.dirname(__file__), "..", "workers"))

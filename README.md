@@ -34,7 +34,8 @@ All configuration for the buildmaster can be done by editing the
 Configurable options should always be exposed to `docker-compose`, rather than
 being hard-coded into the buildmaster’s Python code.
 
-Secret keys for the buildmaster should be set in the `master/_secrets.py` file:
+Secret keys for the buildmaster should be set in a `secrets.cfg` file next to
+the `master.cfg` file in the root:
 
 * `github_client_id`: The client ID for the ScummVM OAuth app on GitHub that is
   used for authentication.

@@ -1,3 +1,4 @@
 buildbot-docker-example-config/
 buildbot-for-autocomplete/
 *.pyc
+secrets.cfg
