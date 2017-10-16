@@ -14,5 +14,8 @@ def make_services(irc_nick, irc_password, irc_channel):
             lostDelay=2,
             failedDelay=60,
             useRevisions=True,
-            notify_events={"failureToSuccess": True, "failure": True})
+            notify_events={"failureToSuccess": True,
+                           "exceptionToSuccess": True,
+                           "failure": True,
+                           "exception": True})
     ]
