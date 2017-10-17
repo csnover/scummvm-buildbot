@@ -122,12 +122,13 @@ services:
       - ccache:/data/ccache
       - repository:/data/sharedrepo
 
-  # buildbot-amigaos:
-  #   <<: *defaultWorker
-  #   image: scummvm-buildbot-amigaos:latest
-  #   environment:
-  #     <<: *defaultEnv
-  #     WORKERNAME: amigaos
+  buildbot-nintendo:
+    <<: *defaultWorker
+    image: scummvm-buildbot-nintendo:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/nintendo
+      WORKERNAME: nintendo
 
 volumes:
   ccache:
