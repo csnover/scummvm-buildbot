@@ -72,6 +72,8 @@ services:
     volumes:
       - database:/data/db
       - snapshots:/data/snapshots
+      - ./workers:/var/lib/buildbot/master/workers:ro
+      - ./secrets.cfg:/var/lib/buildbot/secrets.cfg:ro
 
   buildbot-debian: &defaultWorker
     image: scummvm-buildbot-debian:latest

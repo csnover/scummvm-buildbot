@@ -12,6 +12,4 @@ RUN mkdir -p /data/db /data/snapshots && \
 USER buildbot
 WORKDIR /var/lib/buildbot
 COPY master.cfg .
-COPY secrets.cfg .
 COPY master master
-COPY workers master/workers
