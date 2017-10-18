@@ -28,9 +28,6 @@ def compute_configure(props):
     args = props.getProperty("configure_args", [])
     command += args
 
-    if "--disable-optimizations" not in args:
-        command.append("--enable-optimizations")
-
     if ("--disable-all-engines" not in args
             and not any(arg.startswith("--enable-engine") for arg in args)):
         command.append("--enable-all-engines")
