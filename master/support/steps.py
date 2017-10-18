@@ -95,7 +95,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         super(Package, self).__init__(**kwargs)
         assert package_name
         self.package_name = package_name
-        self.package_format = package_format or "tar.xz"
+        self.package_format = package_format
         self.make_target = make_target
         self.strip_binaries = strip_binaries
 
@@ -144,25 +144,26 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
             yield self.send_command(command=["make", self.make_target])
 
         bundle_dir += "/"
-        archive_filename = "%s.%s" % (self.package_name, self.package_format)
 
-        if self.package_format is "zip":
-            archiver = ["zip", "-8r", archive_filename, bundle_dir]
+        package_format = self.package_format
+        if package_format is "zip":
+            archiver = ["zip", "-8r"]
         else:
-            if self.package_format is "tar.gz":
+            if package_format is "tar.gz":
                 compression_flag = "j"
                 compression_options = {"GZIP": "-9"}
-            elif self.package_format is "tar":
+            elif package_format is "tar":
                 compression_flag = ""
                 compression_options = {}
             else:
                 compression_flag = "J"
                 compression_options = {"XZ_OPT": "-2"}
+                package_format = "tar.xz"
 
-            archiver = ["tar",
-                        "-cv%sf" % compression_flag,
-                        archive_filename,
-                        bundle_dir]
+            archiver = ["tar", "-cv%sf" % compression_flag]
+
+        archive_filename = "%s.%s" % (self.package_name, package_format)
+        archiver += [archive_filename, bundle_dir]
 
         yield self.send_command(command=archiver, env=compression_options)
         yield self.runRmdir(path.join(self.workdir, bundle_dir))
