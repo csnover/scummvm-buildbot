@@ -137,6 +137,9 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
         source_path = Property("package_filename")
         target_path = Interpolate("%s%%(prop:package_filename)s" % snapshots_dir)
         target_url = Interpolate("%s%%(prop:package_filename)s" % snapshots_url)
+        # This is not an ideal target link calculation since the archive format
+        # in package_filename might be fixed up by the Package step, but here
+        # only None is converted into tar.xz, which is not exactly the same
         target_link = Interpolate("%s%%(prop:buildername)s-latest."
                                   "%%(prop:package_archive_format:-tar.xz)s" % snapshots_dir)
 
