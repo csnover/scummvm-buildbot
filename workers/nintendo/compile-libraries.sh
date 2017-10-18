@@ -52,6 +52,13 @@ build_library () {
 			tar xf freetype-2*.tar.bz2 || return 1
 			cd freetype*/ || return 1
 			;;
+		libgxflux)
+			if [ $target != "powerpc-eabi" ]; then
+				return 0
+			fi
+			DEVKITPRO=/opt/devkitpro DEVKITPPC=$prefix make -j$num_cpus install || return 1
+			return 0
+			;;
 		libjpeg-turbo)
 			configure_args+="--without-turbojpeg --without-simd"
 			;;
@@ -114,7 +121,12 @@ warning () {
 
 libraries=$@
 
-DEBIAN_FRONTEND=noninteractive apt-get source -y $libraries
+if [ "$libraries" == "libgxflux" ]; then
+	# TODO: Host this code.
+	wget -O - https://github.com/carstene1ns/libgxflux/archive/0a636b8fd82052a17f1bc15d2a5e3b5f65bde3e6.tar.gz |tar zxf -
+else
+	DEBIAN_FRONTEND=noninteractive apt-get source -y $libraries
+fi
 
 root_dir=$(pwd)
 i=0

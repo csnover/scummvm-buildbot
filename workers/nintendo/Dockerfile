@@ -10,20 +10,25 @@ COPY --from=devkitpro /opt/devkitpro/libmirko /opt/devkitpro/libmirko
 COPY --from=devkitpro /opt/devkitpro/libnds /opt/devkitpro/libnds
 COPY --from=devkitpro /opt/devkitpro/libogc /opt/devkitpro/libogc
 
-# dpkg-dev   # required to retrieve sources from apt
-# libgmp10   # required by the ARM compiler
-# debhelper  # required by libmad
-# quilt      # required by libmad
-# pkg-config # required by fluidsynth
+# ca-certificates # required to retrieve libgxflux
+# dpkg-dev        # required to retrieve sources from apt
+# libgmp10        # required by the ARM compiler
+# debhelper       # required by libmad
+# quilt           # required by libmad
+# pkg-config      # required by fluidsynth
+# wget            # required to retrieve libgxflux
 RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 	> /etc/apt/sources.list.d/debsrc.list && \
 	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		ca-certificates \
 		debhelper \
 		dpkg-dev \
+		git \
 		libgmp10 \
 		pkg-config \
-		quilt
+		quilt \
+		wget
 
 WORKDIR /tmp/compile
 COPY compile-libraries.sh .
@@ -33,6 +38,7 @@ RUN ./compile-libraries.sh faad2
 RUN ./compile-libraries.sh libmad
 RUN ./compile-libraries.sh libogg libtheora libvorbisidec
 RUN ./compile-libraries.sh mpeg2dec
+RUN ./compile-libraries.sh libgxflux
 	# glibc       # configure fails, unsupported architecture
 	# flac        # build fails, utime/chown missing (from glibc)
 	# curl        # configure fails, gethostbyname missing (from glibc)
