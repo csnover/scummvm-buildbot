@@ -115,6 +115,10 @@ Worker images will also use this version when you generate images with
   want to inspect the base image first, run
   `docker run --rm -u0 <image-name> /bin/bash` to automatically download and
   start up a container for that image.
+* If you need to compile some third-party libraries from source, take a look at
+  the [workers/nintendo/compile-libraries.sh](./workers/nintendo/compile-libraries.sh)
+  script. (The goal is to have one reusable, general-purpose script for
+  the common operations involved in compiling third-party libraries.)
 * Running `docker-compose up` without `-d` will send the logs of all the started
   containers’ main processes to the console so they can be viewed. It will also
   run the containers only until you hit Ctrl+C. Otherwise, you can view the logs
