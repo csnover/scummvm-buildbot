@@ -31,86 +31,36 @@ set_toolchain () {
 	export PKG_CONFIG_SYSROOT_DIR=$prefix
 }
 
+do_fetch () {
+	if [ -d $library*/ ]; then
+		rm -r $library*/
+	fi
+	DEBIAN_FRONTEND=noninteractive apt-get source -y $library
+	cd $library*/
+}
+
+do_configure () {
+	./configure --prefix=$prefix --host=$target --disable-shared $@
+}
+
+do_make () {
+	make -j$num_cpus install
+}
+
 num_cpus=$(grep -c ^processor /proc/cpuinfo)
 build_library () {
-	local target=$1
-	local prefix=$2
-	local library=$3
+	target=$1
+	prefix=$2
+	library=$3
 
-	make clean 2>&1 >/dev/null
-
-	configure="./configure"
-	configure_args="--prefix=$prefix --host=$target --enable-static --disable-shared "
-	case $library in
-		faad2)
-			autoreconf -i || return 1
-			;;
-		flac)
-			configure_args+="--disable-altivec"
-			;;
-		freetype)
-			tar xf freetype-2*.tar.bz2 || return 1
-			cd freetype*/ || return 1
-			;;
-		libgxflux)
-			if [ $target != "powerpc-eabi" ]; then
-				return 0
-			fi
-			DEVKITPRO=/opt/devkitpro DEVKITPPC=$prefix make -j$num_cpus install || return 1
-			return 0
-			;;
-		libjpeg-turbo)
-			configure_args+="--without-turbojpeg --without-simd"
-			;;
-		libmad)
-			# Unlike the other packages, for some reason libmad does not
-			# auto-apply quilt patches from the debian directory, which are
-			# needed to (among other things) avoid compilation failures due to
-			# the use of a flag `-fforce-mem`` which was removed in GCC 4.3.
-			dh_quilt_patch || return 1
-			touch NEWS AUTHORS ChangeLog || return 1
-			autoreconf -i || return 1
-			;;
-		libpng1.6)
-			# libpng unconditionally compiles some tools which try to link to
-			# interfaces that do not exist on GC/Wii. There is no flag to
-			# disable these compilations, so just empty out the affected tool
-			# for now.
-			echo "int main() { return 0; }" > contrib/tools/pngcp.c
-			;;
-		libtheora)
-			# Theora tries to build some XML docs even when it can't, and this
-			# breaks the build, so just disable that by overwriting the doc
-			# Makefile.
-			echo "all install clean:" > doc/Makefile.am
-			echo "all install clean:" > doc/Makefile.in
-
-			configure_args+="--disable-spec --disable-examples"
-			;;
-		libvorbisidec)
-			autoreconf -i || return 1
-			configure_args+="--enable-low-accuracy"
-			;;
-		mpeg2dec)
-			sed -i 's/have_altivec=yes/have_altivec=no/' configure
-			;;
-		zlib)
-			configure_args="--prefix=$prefix --static"
-			;;
-	esac
-
-	$configure $configure_args || return 1
-
-	case $library in
-		libjpeg-turbo)
-			# libjpeg unconditionally compiles an MD5 hashing utility for
-			# validation testing, but this tool will not link on the PPC
-			# compiler, so just get rid of it.
-			echo "all install clean:" > md5/Makefile
-		;;
-	esac
-
-	make -j$num_cpus install || return 1
+	local rules_file="$root_dir/library-rules/$library.sh"
+	if [ -f "$rules_file" ]; then
+		. "$rules_file"
+	else
+		do_fetch
+		do_configure
+		do_make
+	fi
 
 	return 0
 }
@@ -119,14 +69,19 @@ warning () {
 	echo $@ >&2
 }
 
-libraries=$@
+fatal_error () {
+	if [ "$library" != "" ]; then
+		warning "$library build failed!"
+	else
+		warning "Build failed!"
+	fi
+	exit 1
+}
 
-if [ "$libraries" == "libgxflux" ]; then
-	# TODO: Host this code.
-	wget -O - https://github.com/carstene1ns/libgxflux/archive/0a636b8fd82052a17f1bc15d2a5e3b5f65bde3e6.tar.gz |tar zxf -
-else
-	DEBIAN_FRONTEND=noninteractive apt-get source -y $libraries
-fi
+set -eE
+trap fatal_error ERR
+
+libraries=$@
 
 root_dir=$(pwd)
 i=0
@@ -137,12 +92,7 @@ while [ $i -lt ${#toolchains[@]} ]; do
 	env
 	for library in $libraries; do
 		echo "Building $library"
-		cd $library*/
 		build_library $target $prefix $library
-		if [ $? -ne 0 ]; then
-			warning "$library build failed!"
-			exit 1
-		fi
 		cd "$root_dir"
 	done
 

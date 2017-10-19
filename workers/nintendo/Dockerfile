@@ -32,20 +32,38 @@ RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 
 WORKDIR /tmp/compile
 COPY compile-libraries.sh .
+
+# Library rules are copied separately along with their corresponding library
+# so that changes or additions to individual library scripts don't invalidate
+# every single library layer
+COPY library-rules/zlib.sh library-rules/libpng1.6.sh library-rules/freetype.sh library-rules/
 RUN ./compile-libraries.sh zlib libpng1.6 freetype
+
+COPY library-rules/libjpeg-turbo.sh library-rules/
 RUN ./compile-libraries.sh libjpeg-turbo
+
+COPY library-rules/faad2.sh library-rules/
 RUN ./compile-libraries.sh faad2
+
+COPY library-rules/libmad.sh library-rules/
 RUN ./compile-libraries.sh libmad
+
+COPY library-rules/libtheora.sh library-rules/libvorbisidec.sh library-rules/
 RUN ./compile-libraries.sh libogg libtheora libvorbisidec
+
+COPY library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries.sh mpeg2dec
+
+COPY library-rules/libgxflux.sh library-rules/
 RUN ./compile-libraries.sh libgxflux
-	# glibc       # configure fails, unsupported architecture
-	# flac        # build fails, utime/chown missing (from glibc)
-	# curl        # configure fails, gethostbyname missing (from glibc)
-	# glib2.0     # configure fails, iconv missing (from glibc)
-	# fluidsynth  # can't build, needs glib2.0
-	# libsdl2     # not used on this platform
-	# libsdl2-net # not used on this platform
+
+# glibc       # configure fails, unsupported architecture
+# flac        # build fails, utime/chown missing (from glibc)
+# curl        # configure fails, gethostbyname missing (from glibc)
+# glib2.0     # configure fails, iconv missing (from glibc)
+# fluidsynth  # can't build, needs glib2.0
+# libsdl2     # not used on this platform
+# libsdl2-net # not used on this platform
 
 FROM ${DEFAULT_BASE_IMAGE}
 
