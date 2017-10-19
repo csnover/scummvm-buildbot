@@ -58,6 +58,16 @@ LABEL buildbot-version=${BUILDBOT_VERSION}
 # for more detailed information.
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		ccache \
+		dumb-init \
+		git \
+		gzip \
+		make \
+		python-openssl \
+		python-pip \
+		python-twisted \
+		rsync \
+		xz-utils \
 		... && \
 	rm -rf /var/lib/apt/lists/*
 
@@ -65,6 +75,13 @@ RUN apt-get update && \
 # using pip.
 RUN pip --no-cache-dir install \
 		buildbot-worker==${BUILDBOT_VERSION}
+
+# For cross-compilers that don't install to a standard system directory like
+# /usr/local/bin, specify the path to the compiler's executables here. It is
+# also possible to set this in the Buildbot builder configuration if the worker
+# has multiple conflicting paths that require only one path to be used at a
+# time.
+ENV PATH=$PATH
 
 # Create the unprivileged user and home directory which will be used by
 # Buildbot. This home directory is where all of the working directories for each
