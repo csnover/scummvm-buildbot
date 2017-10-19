@@ -1,5 +1,5 @@
 ARG DEFAULT_BASE_IMAGE
-FROM werner/devkitpro:latest as devkitpro
+FROM werner/devkitpro:559a46fa7958 as devkitpro
 FROM ${DEFAULT_BASE_IMAGE} as libraries
 
 COPY --from=devkitpro /opt/devkitpro/devkitARM /opt/devkitpro/devkitARM
