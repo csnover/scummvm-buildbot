@@ -80,6 +80,9 @@ fatal_error () {
 	else
 		warning "Build failed!"
 	fi
+	tail -f /dev/null
+	warning "You may now connect to the container with docker exec to inspect"
+	warning "the environment, then hit Ctrl+C here to end the build."
 	exit 1
 }
 
