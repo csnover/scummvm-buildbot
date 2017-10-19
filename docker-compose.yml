@@ -14,11 +14,11 @@ services:
 
       # The IRC channel for the IRC status bot. If a channel is not provided,
       # the IRC bot is disabled.
-      BUILDBOT_IRC_CHANNEL: "##scummvm-testtest"
+      BUILDBOT_IRC_CHANNEL:
 
       # The username for the IRC status bot. If the username is not provided,
       # the IRC bot is disabled.
-      BUILDBOT_IRC_USERNAME: GhostOfScummVM
+      BUILDBOT_IRC_USERNAME:
 
       # The URL to the canonical source repository.
       BUILDBOT_REPO_URL: https://github.com/csnover/scummvm.git
@@ -30,7 +30,7 @@ services:
       BUILDBOT_SITE_URL: https://scummvm.org/
 
       # The publicly-accessible URL of the Buildbot web service.
-      BUILDBOT_WEB_URL: https://buildbot.scummvm.org/
+      BUILDBOT_WEB_URL: http://localhost:28453/
 
       # The internal port used by the web service. Expose this through the host
       # container using docker-compose ports configuration.
@@ -44,7 +44,7 @@ services:
       # If truthy, authentication is changed to use a basic authentication
       # with the login 'user'/'pass' instead of the normal GitHub
       # authentication.
-      SCUMMVM_DEV_ENV: 0
+      SCUMMVM_DEV_ENV: 1
 
       # The location of the configuration file containing the secrets used by
       # buildmaster services. Relative paths are relative to the directory
@@ -123,7 +123,7 @@ services:
       WORKER_ENVIRONMENT_BLACKLIST: CONTAINER_HOST WORKERNAME WORKERPASS WORKER_ENVIRONMENT_BLACKLIST BUILDMASTER* DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1*
     links:
       - buildbot
-    volumes:
+    volumes: &defaultVolumes
       - ccache:/data/ccache
       - repository:/data/sharedrepo
 
