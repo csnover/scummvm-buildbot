@@ -23,9 +23,8 @@ Individual worker configurations are in `workers` subdirectories.
 
 ## Requirements
 
-* A [copy of Docker](https://www.docker.com/community-edition) (and
-  `docker-compose` if you are getting Docker from a package manager). 17.09 is
-  known to work; earlier versions are currently untested
+* A [copy of Docker 17.09+](https://www.docker.com/community-edition) (and
+  `docker-compose` if you are getting Docker from a package manager)
 * A clone of this repository
 * Some patience
 
