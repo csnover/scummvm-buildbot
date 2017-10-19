@@ -52,7 +52,7 @@ fi
 if [ $# -gt 0 ]; then
     if [ "$1" == "all" ]; then
         echo "Building all workers"
-        for dockerfile in $(find workers -name Dockerfile); do
+        for dockerfile in $(find workers -name _template -prune -o -name Dockerfile -print); do
             worker_dir=$(dirname $dockerfile)
             build_worker $worker_dir
         done
