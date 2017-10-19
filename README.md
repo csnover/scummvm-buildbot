@@ -103,6 +103,14 @@ Worker images will also use this version when you generate images with
 
 ## Tips for creating & debugging workers
 
+* To run a test build, log in to Buildbot, click on Builds in the main menu,
+  then Builders, then click on the builder you want to test, then click the
+  “Run manual build” button in the top-right corner, enter a message, and click
+  “Start Build”.
+* Once you log in to the buildmaster, you can go to any Builder page to run a
+  manual build, or to any build’s results page to cancel or re-run the same
+  build. The buttons for these actions will appear at the top-right of the
+  window, next to the avatar image.
 * If you are creating a new worker based off an existing Docker Hub image, and
   want to inspect the base image first, run
   `docker run --rm -u0 <image-name> /bin/bash` to automatically download and
@@ -112,25 +120,26 @@ Worker images will also use this version when you generate images with
   run the containers only until you hit Ctrl+C. Otherwise, you can view the logs
   for running services at any time with `docker-compose logs`.
 * Every time a Docker container is stopped and restarted, any information not
-  stored in a volume will be destroyed. If you need to inspect the state of a
-  directory in the container, consider adding a bind volume to the worker you
-  are debugging in `docker-compose.yml` to bind the directory you want to view
-  to a directory in your host filesystem:
+  stored in a volume will be destroyed. So, if you want to inspect a directory
+  of a container, consider binding it to your host filesystem by adding extra
+  `volumes` to the worker’s configuration in `docker-compose.yml`:
 
   ```yaml
   volumes:
     <<: *defaultVolumes
-    build: path/on/host:path/in/container
+    - /path/on/host:/path/in/container
   ```
-* It is possible to attach to a running container and execute commands directly.
-  To do this, run `docker-compose exec <service-name> <command>`. If you want to
-  run the command as root, add a `-u0` flag after `exec`. If you plan on doing
-  something that requires privileged kernel access (e.g. `strace`), add the
-  `--privileged` flag. If the main process exits, this process will also exit;
-  to get around that, you might consider running `tail -f /dev/null` in the main
-  process after an error condition.
+
+* It is possible to execuse another command on any running service. To do this,
+  run `docker-compose exec <service-name> <command>`. This is particularly
+  useful for spawning a shell to perform actions inside the container. If you
+  want to run the command as root, add a `-u0` flag after `exec`. If you plan on
+  doing something that requires privileged kernel access (e.g. `strace`), add
+  the `--privileged` flag. If the main process exits, this process will also
+  exit; to get around that, you might consider running `tail -f /dev/null` in
+  the main process after an error condition.
 * It is possible to start a service with a one-time override of the main
-  process. To do this, run `docker-compose run <service-name> <command>`. To
+  command. To do this, run `docker-compose run <service-name> <command>`. To
   avoid creating junk containers every time you do this, add the `--rm` flag.
 * After rebuilding your worker image, you may need to run
   `docker-compose stop <service-name> && docker-compose up <service-name>`
@@ -145,10 +154,6 @@ Worker images will also use this version when you generate images with
 * To look at a list of all containers or images on your host machine, including
   those not managed by `docker-compose`, run `docker container ls -a` or
   `docker image ls -a`. It is normal to see many unnamed images in the image
-  list, these are caches created automatically for each step in a Dockerfile.
+  list; these are caches created automatically for each step in a Dockerfile.
 * You do not need to regenerate the buildmaster image, or restart its service,
-  when making changes to workers.
-* Once you log in to the buildmaster, you can go to any Builder page to run a
-  manual build, or to any build results page to re-run the same build. The
-  buttons for these actions will appear at the top-right of the window, next to
-  the avatar image.
+  when making changes to workers. Just restart the worker service.
