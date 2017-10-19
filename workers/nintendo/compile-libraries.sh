@@ -29,6 +29,11 @@ set_toolchain () {
 	export PKG_CONFIG_LIBDIR=$prefix/lib
 	export PKG_CONFIG_PATH=$prefix/lib/pkgconfig
 	export PKG_CONFIG_SYSROOT_DIR=$prefix
+
+	if [ "$target" == "arm-none-eabi" ]; then
+		export CPPFLAGS="-march=armv6k -mtune=mpcore -mfloat-abi=hard $CPPFLAGS"
+		export LDFLAGS="-march=armv6k -mtune=mpcore -mfloat-abi=hard $LDFLAGS"
+	fi
 }
 
 do_fetch () {
