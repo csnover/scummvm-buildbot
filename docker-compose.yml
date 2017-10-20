@@ -135,6 +135,14 @@ services:
       CCACHE_DIR: /data/ccache/nintendo
       WORKERNAME: nintendo
 
+  buildbot-apple:
+    <<: *defaultWorker
+    image: scummvm-buildbot-apple:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/apple
+      WORKERNAME: apple
+
 volumes:
   ccache:
   database:
