@@ -81,6 +81,12 @@ class MasterCleanSnapshots(BuildStep):
         self.descriptionDone = "cleaned %d files" % max(0, len(matches) - self.num_to_keep)
         defer.returnValue(builder.SUCCESS)
 
+def validate_directory(dir_name):
+    assert dir_name
+    dir_name = path.normpath(dir_name)
+    assert path.isabs(dir_name) is False
+    assert dir_name.startswith("../") is False
+
 class Package(BuildStep, ShellMixin, CompositeStepMixin):
     name = "package"
     flunkOnFailure = True
@@ -88,14 +94,21 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
     description = "packaging"
     descriptionDone = "packaged"
 
-    renderables = ["package_name", "package_format", "make_target", "strip_binaries"]
+    renderables = ["package_name",
+                   "package_format",
+                   "package_directory",
+                   "make_target",
+                   "strip_binaries"]
 
-    def __init__(self, package_name, package_format="tar.xz", make_target=None, strip_binaries=False, **kwargs):
+    def __init__(self, package_name, package_format="tar.xz",
+                 package_directory=None, make_target=None, strip_binaries=False,
+                 **kwargs):
         kwargs = self.setupShellMixin(kwargs, prohibitArgs=["command"])
         super(Package, self).__init__(**kwargs)
         assert package_name
         self.package_name = package_name
         self.package_format = package_format
+        self.package_directory = package_directory
         self.make_target = make_target
         self.strip_binaries = strip_binaries
 
@@ -127,19 +140,21 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         # otherwise we need to get the files ourselves
         # TODO: Make Makefile always bundle with `make bundle`, and get
         # rid of this extra machinery just for CI
+        bundle_dir = self.package_directory or self.make_target or self.package_name
+        if bundle_dir and bundle_dir[-1] == "/":
+            bundle_dir = bundle_dir[:-1]
+        validate_directory(bundle_dir)
+
         if self.make_target is None:
             dist_files = yield self.send_command(command=["make", "print-dists"],
                                                  collectStdout=True)
-            bundle_dir = self.package_name
             yield self.runRmdir(path.join(self.workdir, bundle_dir))
             yield self.runMkdir(path.join(self.workdir, bundle_dir))
-            yield self.send_command(command=["rsync", "-av", executable_files.split(" "), bundle_dir])
+            yield self.send_command(command=["rsync", "-av",
+                                             executable_files.split(" "), bundle_dir])
             if dist_files:
                 yield self.send_command(command=["cp", "-a", dist_files.split(" "), bundle_dir])
         else:
-            assert self.make_target[0] != "/"
-            assert "../" not in self.make_target
-            bundle_dir = self.make_target + "/"
             yield self.runRmdir(path.join(self.workdir, bundle_dir))
             yield self.send_command(command=["make", self.make_target])
 
