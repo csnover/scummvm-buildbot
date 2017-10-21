@@ -44,7 +44,7 @@ class MasterCleanSnapshots(BuildStep):
     description = "cleaning"
     descriptionDone = "cleaned"
     flunkOnFailure = False
-    stopOnFailure = False
+    haltOnFailure = False
     warnOnFailure = True
 
     renderables = ["file_prefix", "num_to_keep"]
@@ -90,7 +90,7 @@ def validate_directory(dir_name):
 class Package(BuildStep, ShellMixin, CompositeStepMixin):
     name = "package"
     flunkOnFailure = True
-    stopOnFailure = True
+    haltOnFailure = True
     description = "packaging"
     descriptionDone = "packaged"
 
