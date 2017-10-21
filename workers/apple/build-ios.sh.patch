@@ -1,0 +1,61 @@
+--- a/build.sh	2017-10-21 00:07:05.000000000 -0500
++++ b/build.sh	2017-10-21 00:08:43.000000000 -0500
+@@ -23,8 +23,11 @@
+
+ function extract()
+ {
+-    echo "extracting $(basename $1) ..."
+-    local tarflags="xf"
++    local name=$(basename $1)
++    local sdk_name=${name%.tar.*}
++    mkdir $SDKDIR/$sdk_name
++    local tarflags="--strip-components=1 -C $SDKDIR/$sdk_name -xf"
++    echo "extracting $name ..."
+
+     case $1 in
+         *.tar.xz)
+@@ -59,7 +62,7 @@
+     fi
+
+     if [ ! -d $directory ]; then
+-        git clone $url --depth 1
++        git clone $url
+     fi
+
+     pushd $directory &>/dev/null
+@@ -67,7 +70,6 @@
+     git reset --hard
+     git clean -fdx
+     git checkout $branch
+-    git pull
+
+     popd &>/dev/null
+ }
+@@ -161,9 +163,17 @@
+
+ mkdir -p tmp
+ pushd tmp &>/dev/null
+-git_clone_repository https://github.com/tpoechtrager/ldid.git master
++git_clone_repository https://github.com/tpoechtrager/ldid.git 3064ed628108da4b9a52cfbe5d4c1a5817811400
+ pushd ldid &>/dev/null
++garbage_gxx=0
++if ! which g++; then
++    garbage_gxx=1
++    ln -s $(which clang++) /usr/local/bin/g++
++fi
+ make INSTALLPREFIX=$TARGETDIR -j$JOBS install
++if [[ $garbage_gxx -eq 1 ]]; then
++    rm /usr/local/bin/g++
++fi
+ popd &>/dev/null
+ popd &>/dev/null
+
+@@ -172,7 +182,7 @@
+ echo ""
+
+ pushd tmp &>/dev/null
+-git_clone_repository https://github.com/tpoechtrager/apple-libtapi.git master
++git_clone_repository https://github.com/tpoechtrager/apple-libtapi.git 19694a572cd9c0f6452a8e214682e74197370934
+ pushd apple-libtapi &>/dev/null
+ INSTALLPREFIX=$TARGETDIR ./build.sh
+ ./install.sh
