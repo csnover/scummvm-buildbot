@@ -174,7 +174,7 @@ def make_builders(repo_url, worker_configs, snapshots_dir=None, snapshots_url=No
     # since many workers may run on a single container host and this should block
     # on host container resources.
     # "build1" is the name used for the container host in docker-compose.yml
-    master_lock = util.WorkerLock("build1", maxCount=1)
+    master_lock = util.MasterLock("build1")
 
     builders = []
     for (worker_name, worker_config) in iteritems(worker_configs):
