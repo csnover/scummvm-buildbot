@@ -1,20 +1,14 @@
 ARG DEFAULT_BASE_IMAGE
 FROM ${DEFAULT_BASE_IMAGE}
-
-ARG BUILDBOT_VERSION
-LABEL buildbot-version=${BUILDBOT_VERSION}
+USER root
 
 RUN dpkg --add-architecture i386 && \
 	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-# scummvm
-		ccache \
 		clang \
 		g++ \
 		g++-multilib \
 		g++-mingw-w64 \
-		git \
-		make \
 		libcurl4-openssl-dev \
 		libcurl3:i386 \
 		libfaad-dev \
@@ -43,19 +37,8 @@ RUN dpkg --add-architecture i386 && \
 		libvorbis-dev:i386 \
 		zlib1g-dev \
 		zlib1g-dev:i386 \
-# buildbot
-		dumb-init \
-		gzip \
-		python-openssl \
-		python-pip \
-		python-twisted \
-		rsync \
-		xz-utils \
 		&& \
 	rm -rf /var/lib/apt/lists/*
-
-RUN pip --no-cache-dir install \
-		buildbot-worker==$BUILDBOT_VERSION
 
 # HACK: multi-arch jessie packages for SDL cannot be installed side-by-side
 # because of an architecture conflict in its dependencies, so just extract
@@ -69,12 +52,5 @@ RUN apt-get update && \
 	rm -rf /var/lib/apt/lists/* && \
 	apt-get clean
 
-RUN useradd -ms /bin/bash -d /buildbot -u 2845 -U buildbot
-
-RUN mkdir -p /data/ccache /data/sharedrepo && \
-    chown buildbot:buildbot /data/ccache /data/sharedrepo
-
 USER buildbot
 WORKDIR /buildbot
-COPY buildbot.tac /buildbot
-CMD ["/usr/bin/dumb-init", "twistd", "-ny", "buildbot.tac"]

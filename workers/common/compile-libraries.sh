@@ -1,13 +1,21 @@
 #!/usr/bin/env bash
 
-toolchains=(
-	arm-none-eabi /opt/devkitpro/devkitARM
-	powerpc-eabi /opt/devkitpro/devkitPPC
-)
+usage() {
+	echo "Usage: $0 [--help] <host> <prefix> <library> [<library> ...]"
+	echo
+	echo "Builds libraries for the given cross-compiler toolchain."
+	echo
+	echo "<host>:    The host tuple (e.g. arm-apple-darwin11)."
+	echo "<prefix>:  The absolute path to the cross-compiler's root directory"
+	echo "           (i.e. the directory containing bin, lib, etc.)."
+	echo "<library>: The name of the library source package."
+}
 
+root_dir=$PWD
+flags=()
 orig_path=$PATH
 set_toolchain () {
-	local target=$1
+	local host=$1
 	local prefix=$2
 	local bin_dir="$prefix/bin"
 
@@ -15,7 +23,7 @@ set_toolchain () {
 		ld ldd nm objcopy objdump populate ranlib readelf run size strings strip; do
 		local var_name=${bin^^}
 		var_name=${var_name//+/X}
-		local bin_path="$bin_dir/$target-$bin"
+		local bin_path="$bin_dir/$host-$bin"
 		[ -f "$bin_path" ] && export $var_name=$bin_path || unset $var_name
 	done
 
@@ -23,17 +31,16 @@ set_toolchain () {
 	[ "$CXX" == "" -a "$GXX" != "" ] && export CXX=$GXX
 
 	export ACLOCAL_PATH=$prefix/share/aclocal
-	export CPPFLAGS="-I$prefix/include"
-	export LDFLAGS="-L$prefix/lib"
+	export CPPFLAGS="$CPPFLAGS -I$prefix/include"
+	export LDFLAGS="$LDFLAGS -L$prefix/lib"
 	export PATH=$bin_dir:$orig_path
 	export PKG_CONFIG_LIBDIR=$prefix/lib
 	export PKG_CONFIG_PATH=$prefix/lib/pkgconfig
 	export PKG_CONFIG_SYSROOT_DIR=$prefix
+}
 
-	if [ "$target" == "arm-none-eabi" ]; then
-		export CPPFLAGS="-march=armv6k -mtune=mpcore -mfloat-abi=hard $CPPFLAGS"
-		export LDFLAGS="-march=armv6k -mtune=mpcore -mfloat-abi=hard $LDFLAGS"
-	fi
+get_dependencies () {
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends $@
 }
 
 do_fetch () {
@@ -45,7 +52,7 @@ do_fetch () {
 }
 
 do_configure () {
-	./configure --prefix=$prefix --host=$target --disable-shared $@
+	./configure --prefix=$prefix --host=$host --disable-shared $@
 }
 
 do_make () {
@@ -54,7 +61,7 @@ do_make () {
 
 num_cpus=$(grep -c ^processor /proc/cpuinfo)
 build_library () {
-	target=$1
+	host=$1
 	prefix=$2
 	library=$3
 
@@ -89,20 +96,27 @@ fatal_error () {
 set -eE
 trap fatal_error ERR
 
+if [ "$1" == "--help" ]; then
+	usage
+	exit 0
+fi
+
+if [ $# -lt 3 ]; then
+	usage
+	echo
+	echo "Error: Missing required arguments."
+	exit 1
+fi
+
+host=$1
+prefix=$2
+shift 2
 libraries=$@
 
-root_dir=$(pwd)
-i=0
-while [ $i -lt ${#toolchains[@]} ]; do
-	target=${toolchains[i]}
-	prefix=${toolchains[$((i+1))]}
-	set_toolchain $target $prefix
-	env
-	for library in $libraries; do
-		echo "Building $library"
-		build_library $target $prefix $library
-		cd "$root_dir"
-	done
-
-	i=$((i+2))
+set_toolchain $host $prefix
+env
+for library in $libraries; do
+	echo "Building $library"
+	build_library $host $prefix $library
+	cd "$root_dir"
 done

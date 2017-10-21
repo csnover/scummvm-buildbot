@@ -1,3 +1,4 @@
+get_dependencies automake debhelper libtool quilt
 do_fetch
 # Unlike the other packages, for some reason libmad does not
 # auto-apply quilt patches from the debian directory, which are

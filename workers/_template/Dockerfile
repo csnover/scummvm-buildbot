@@ -8,20 +8,35 @@
 # important when rebuilding images.
 
 # Choose the base image for use by the worker. Using the same default base image
-# is best, if possible, since this data can then be shared by all workers.
+# is best, if possible, since this data can then be shared by all workers. If
+# you are starting from a source Docker image that uses a different base, you
+# can copy out of the source image using `COPY --from` to keep a common base;
+# see <https://docs.docker.com/engine/userguide/eng-image/multistage-build/> for
+# details.
 ARG DEFAULT_BASE_IMAGE
 FROM ${DEFAULT_BASE_IMAGE}
+
+# The default build context on the host is the `workers` directory, so that you
+# can access common files by referencing them as `common`. When copying
+# worker-specific files, reference the worker's directory by using $WORKER_NAME
+# instead of hard-coding the worker's name in the COPY operations.
+# Note that if you use $WORKER_NAME after more than one FROM operation, you will
+# need to duplicate this ARG after each FROM.
+ARG WORKER_NAME
 
 # Please provide some different contact information here if you are an
 # individual maintainer for this worker.
 LABEL maintainer="ScummVM Team <admin@scummvm.org>"
 
 # The buildbot version will normally come from build-images.sh. This keeps all
-# images using the same version of Buildbot.
+# images using the same version of Buildbot. If you use the default base image,
+# you do not need to install Buildbot yourself and can delete this.
 ARG BUILDBOT_VERSION
 LABEL buildbot-version=${BUILDBOT_VERSION}
 
-# All system packages should be installed here.
+# All system packages should be installed here. If you use the default base
+# image, you do not need to install any of these packages yourself and can
+# delete this section.
 #
 # The following system libraries/utilities are required for Buildbot:
 #
@@ -72,7 +87,8 @@ RUN apt-get update && \
 	rm -rf /var/lib/apt/lists/*
 
 # If Buildbot is not available from the package manager, install it separately
-# using pip.
+# using pip. If you use the default base image, you do not need to install
+# Buildbot yourself and can delete this.
 RUN pip --no-cache-dir install \
 		buildbot-worker==${BUILDBOT_VERSION}
 
@@ -81,28 +97,24 @@ RUN pip --no-cache-dir install \
 # also possible to set this in the Buildbot builder configuration if the worker
 # has multiple conflicting paths that require only one path to be used at a
 # time.
-ENV PATH=$PATH
+ENV PATH=/path/to/cross-compiler/bin:$PATH
 
-# Create the unprivileged user and home directory which will be used by
-# Buildbot. This home directory is where all of the working directories for each
-# builder will be created (one subdirectory per builder), plus the startup
-# script. Per convention, put the home directory at `/buildbot` instead of in
-# its default place. Buildbot also needs a valid shell for executing shell
-# commands on the worker.
-RUN useradd -ms /bin/bash -d /buildbot -u 2845 -U buildbot
+# If you want the worker to use any writable shared or persistent data
+# directories, create them here, setting permissions appropriately so they can
+# be written to by the buildbot user. The default base image creates writable
+# /data/ccache and /data/sharedrepo mount points, so you can delete this if you
+# are using the default base image and are satisfied with the defaults.
+RUN mkdir -p /data/shared && \
+	chown buildbot:buildbot /data/shared
 
-# If you want the worker to use the shared Git repository, or the persistent
-# compilation cache, the persistent data directories need to be set up here and
-# permissions set appropriately so they can be written to by buildbot. Any other
-# mount points for persistent data also need to be created here like this.
-RUN mkdir -p /data/ccache /data/sharedrepo && \
-    chown buildbot:buildbot /data/ccache /data/sharedrepo
-
-# The rest of this is boilerplate that you should be able to leave alone. Only
-# if dumb-init was not installed from the system's package manager, or you must
-# use a non-standard buildbot user or directory, should you need to change any
-# of this.
+# Always make sure to switch back to the buildbot user & working directly at the
+# end of the Dockerfile, or Buildbot will not function.
 USER buildbot
 WORKDIR /buildbot
-COPY buildbot.tac /buildbot
+
+# The rest of this is boilerplate that you should be able to use as-is, or just
+# delete if you are using the default base image. You should only need to change
+# any of this if dumb-init was not installed from the system's package manager,
+# or you must use a non-standard buildbot user or directory (this is unlikely).
+COPY common/buildbot.tac /buildbot
 CMD ["/usr/bin/dumb-init", "twistd", "-ny", "buildbot.tac"]
