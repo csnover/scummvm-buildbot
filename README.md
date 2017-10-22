@@ -2,11 +2,8 @@
 
 This Buildbot uses [Docker](https://www.docker.com/).
 
-The buildmaster’s configuration is in `master`, with a stub `master.cfg` in the
-root (due to limitations of Docker, and the desire to keep workers encapsulated
-in the `workers` subdirectory).
-
-Individual worker configurations are in `workers` subdirectories.
+The buildmaster’s configuration is in `master`. Individual worker configurations
+are in `workers` subdirectories.
 
 ## Features
 
@@ -31,7 +28,7 @@ Individual worker configurations are in `workers` subdirectories.
 ## Quick start
 
 * Clone this repository
-* Create a `secrets.cfg` next to `master.cfg` in the root:
+* Create a `secrets.cfg` in the root:
 
   ```python
   github_hook_secret = None
@@ -45,7 +42,7 @@ Individual worker configurations are in `workers` subdirectories.
 
 ## Building images
 
-The buildmaster’s `Dockerfile` is in the root. Each worker’s `Dockerfile` is in
+The buildmaster’s `Dockerfile` is in `master`. Each worker’s `Dockerfile` is in
 its own subdirectory in `workers`.
 
 Run the provided `build-images.sh` script to build images from source. Run
@@ -60,9 +57,8 @@ When making changes to the buildmaster, configurable options should be exposed
 to `docker-compose` in a similar manner, rather than being hard-coded into the
 buildmaster’s Python code.
 
-Secret keys for the buildmaster should be set in a `secrets.cfg` file next to
-the `master.cfg` file in the root. The secret file is a Python module with these
-keys:
+Secret keys for the buildmaster should be set in a `secrets.cfg` file in the
+root. The secret file is a Python module with these keys:
 
 * `github_client_id`: The client ID for the ScummVM OAuth app on GitHub that is
   used for authentication.
@@ -115,9 +111,9 @@ Worker images will also use this version when you generate images with
   `docker run --rm -u0 <image-name> /bin/bash` to automatically download and
   start up a container for that image.
 * If you need to compile some third-party libraries from source, take a look at
-  the [workers/nintendo/compile-libraries.sh](./workers/nintendo/compile-libraries.sh)
-  script. (The goal is to have one reusable, general-purpose script for
-  the common operations involved in compiling third-party libraries.)
+  the [common/compile-libraries.sh](./common/compile-libraries.sh) script. (The
+  goal is to have one reusable, general-purpose script for the common operations
+  involved in compiling third-party libraries.)
 * Running `docker-compose up` without `-d` will send the logs of all the started
   containers’ main processes to the console so they can be viewed. It will also
   run the containers only until you hit Ctrl+C. Otherwise, you can view the logs
@@ -159,4 +155,4 @@ Worker images will also use this version when you generate images with
   `docker image ls -a`. It is normal to see many unnamed images in the image
   list; these are caches created automatically for each step in a Dockerfile.
 * You do not need to regenerate the buildmaster image, or restart its service,
-  when making changes to workers. Just restart the worker service.
+  when making changes to workers. Just restart the worker’s service.

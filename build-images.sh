@@ -39,7 +39,7 @@ fi
 
 default_base_image="scummvm-buildbot-common:latest"
 default_os_image="debian:9.2"
-buildbot_version=$(sed -n 's/FROM.*buildbot-master:v\{0,1\}\([^[:space:]]\)/\1/p' Dockerfile)
+buildbot_version=$(sed -n 's/FROM.*buildbot-master:v\{0,1\}\([^[:space:]]\)/\1/p' master/Dockerfile)
 root_dir=$(pwd)
 
 if [ -z $buildbot_version ]; then
@@ -49,7 +49,9 @@ fi
 
 if [ $build_master -eq 1 ]; then
 	echo "Building master image"
-	docker build . -t scummvm-buildbot-master
+	docker build -t scummvm-buildbot-master \
+		-f "master/Dockerfile" \
+		.
 fi
 
 if [ $# -gt 0 ]; then

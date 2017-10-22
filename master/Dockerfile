@@ -11,5 +11,5 @@ RUN mkdir -p /data/db /data/snapshots && \
     chown buildbot:buildbot /data/db /data/snapshots
 USER buildbot
 WORKDIR /var/lib/buildbot
-COPY master.cfg .
+COPY master/master.cfg .
 COPY master master
