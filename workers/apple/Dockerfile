@@ -73,6 +73,50 @@ RUN git clone https://github.com/tpoechtrager/cctools-port.git . && \
 	mv target /opt/ioscross/ && \
 	rm -rf /tmp/compile
 
+RUN mv /opt/ioscross/lib/libtapi.so /opt/ioscross/bin
+ENV LD_LIBRARY_PATH=/opt/ioscross/bin
+
+WORKDIR /tmp/compile
+COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-ios.sh ./
+
+# dpkg-dev is required to retrieve sources from apt
+RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
+		> /etc/apt/sources.list.d/debsrc.list && \
+	apt-get update && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		dpkg-dev
+
+# Library rules are copied separately along with their corresponding library
+# so that changes or additions to individual library scripts don't invalidate
+# every single library layer
+COPY common/library-rules/zlib.sh library-rules/
+RUN ./compile-libraries-ios.sh zlib
+
+COPY common/library-rules/libpng1.6.sh library-rules/
+RUN ./compile-libraries-ios.sh libpng1.6
+
+COPY common/library-rules/freetype.sh library-rules/
+RUN ./compile-libraries-ios.sh freetype
+
+COPY common/library-rules/libjpeg-turbo.sh library-rules/
+RUN ./compile-libraries-ios.sh libjpeg-turbo
+
+COPY common/library-rules/faad2.sh library-rules/
+RUN ./compile-libraries-ios.sh faad2
+
+COPY common/library-rules/libmad.sh library-rules/
+RUN ./compile-libraries-ios.sh libmad
+
+RUN ./compile-libraries-ios.sh libogg
+
+COPY common/library-rules/libtheora.sh library-rules/
+RUN ./compile-libraries-ios.sh libtheora
+
+RUN ./compile-libraries-ios.sh libvorbis
+
+COPY common/library-rules/mpeg2dec.sh library-rules/
+RUN ./compile-libraries-ios.sh mpeg2dec
+
 FROM ${DEFAULT_BASE_IMAGE}
 ARG WORKER_NAME
 USER root
@@ -97,6 +141,7 @@ ENV MACOSX_DEPLOYMENT_TARGET=10.6
 ENV OSXCROSS_MP_INC=1
 ENV PKG_CONFIG_PATH=/opt/osxcross/macports/pkgs/opt/local/lib/pkgconfig:$PKG_CONFIG_PATH
 ENV PATH=/opt/osxcross/bin:/opt/osxcross/macports/pkgs/opt/local/bin:/opt/ioscross/bin:$PATH$PATH
+ENV LD_LIBRARY_PATH=/opt/ioscross/bin:$LD_LIBRARY_PATH
 
 # Required for bundling with USE_DOCKTILEPLUGIN
 COPY ${WORKER_NAME}/arc /usr/lib/llvm-3.8/lib/arc
