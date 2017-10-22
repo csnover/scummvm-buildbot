@@ -141,8 +141,6 @@ RUN apt-get update && \
 
 ENV MACOSX_DEPLOYMENT_TARGET=10.6
 ENV OSXCROSS_MP_INC=1
-ENV PKG_CONFIG_PATH=/opt/osxcross/macports/pkgs/opt/local/lib/pkgconfig:$PKG_CONFIG_PATH
-ENV PATH=/opt/osxcross/bin:/opt/osxcross/macports/pkgs/opt/local/bin:/opt/ioscross/bin:$PATH$PATH
 ENV LD_LIBRARY_PATH=/opt/ioscross/bin:$LD_LIBRARY_PATH
 
 # Required for bundling with USE_DOCKTILEPLUGIN
