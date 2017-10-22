@@ -79,7 +79,7 @@ do_make () {
 	make -j$num_cpus install
 }
 
-num_cpus=$(grep -c ^processor /proc/cpuinfo)
+num_cpus=$(nproc || grep -c ^processor /proc/cpuinfo || echo 1)
 build_library () {
 	host=$1
 	prefix=$2
