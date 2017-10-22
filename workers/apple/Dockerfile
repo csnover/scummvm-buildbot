@@ -15,6 +15,7 @@ RUN apt-get update && \
 		xz-utils
 
 # macOS cross-compiler
+# The andrew-osx-sdks URL comes from the andrewd/osxcross image
 WORKDIR /tmp/compile
 RUN git clone https://github.com/tpoechtrager/osxcross.git . && \
 	git checkout c76352d614423c54aee2b82957101a881a104c9b && \
@@ -56,6 +57,7 @@ RUN echo 1 | osxcross-macports -s install \
 	osxcross-macports clear-cache
 
 # iOS cross-compiler
+# The neotan URL comes from a Google search for the iOS7.1 SDK
 WORKDIR /tmp
 COPY ${WORKER_NAME}/build-ios.sh.patch build-ios.sh.patch
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
