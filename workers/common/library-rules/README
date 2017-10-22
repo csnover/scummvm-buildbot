@@ -1,0 +1,20 @@
+Rules in this directory are automatically included by compile-libraries.sh and
+are used to override the default `apt-get source` + `configure` + `make install`
+operation when building a library from source.
+
+Variables available to rules:
+
+$host     - The host tuple of the target host.
+$library  - The name of the source library.
+$num_cpus - The ideal number of compilation threads.
+$prefix   - The prefix for the target host.
+
+Functions available to rules:
+
+do_configure(...)     - Call `configure` with default flags, plus any extra
+                        passed flags
+do_fetch()            - Remove any old source directory and fetch fresh source
+                        code for the library from apt
+do_make()             - Call `make -j<num_cpus> install`
+get_dependencies(...) - Build dependencies to retrieve from apt
+warning(...)          - Print the passed message to stderr
