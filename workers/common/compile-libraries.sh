@@ -19,16 +19,36 @@ set_toolchain () {
 	local prefix=$2
 	local bin_dir="$prefix/bin"
 
-	for bin in addr2line ar as cc c++ gcc cpp c++filt elfedit g++ gcov gdb gprof \
-		ld ldd nm objcopy objdump populate ranlib readelf run size strings strip; do
-		local var_name=${bin^^}
-		var_name=${var_name//+/X}
-		local bin_path="$bin_dir/$host-$bin"
-		[ -f "$bin_path" ] && export $var_name=$bin_path || unset $var_name
+	for bin in $(ls $bin_dir); do
+		if [[ $bin == $host-* ]]; then
+			local bin_name=${bin#$host-}
+			local var_name=${bin_name^^}
+			var_name=${var_name//+/X}
+			var_name=$(echo -n $var_name |sed "s/[^A-Z0-9_]/_/g")
+			export $var_name="$bin_dir/$bin"
+		fi
 	done
 
-	[ "$CC"  == "" -a "$GCC" != "" ] && export CC=$GCC
-	[ "$CXX" == "" -a "$GXX" != "" ] && export CXX=$GXX
+	if [ "$CC" == "" ]; then
+		if [ "$GCC" != "" ]; then
+			export CC=$GCC
+		elif [ "$CLANG" != "" ]; then
+			export CC=$CLANG
+		else
+			warning "Could not find a C compiler"
+			exit 1
+		fi
+	fi
+
+	if [ "$CXX" == "" ]; then
+		if [ "$GXX" != "" ]; then
+			export CXX=$GXX
+		elif [ "$CLANGXX" != "" ]; then
+			export CXX=$CLANGXX
+		else
+			warning "Could not find a C++ compiler"
+		fi
+	fi
 
 	export ACLOCAL_PATH=$prefix/share/aclocal
 	export CPPFLAGS="$CPPFLAGS -I$prefix/include"
