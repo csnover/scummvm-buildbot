@@ -2,7 +2,7 @@ version: "3"
 
 services:
   buildbot:
-    image: scummvm-buildbot-master:latest
+    image: scummvm/buildbot-master:latest
     environment:
       # The role used to allow access to administrative functions (manual
       # builds, rebuilds, cancelling builds, etc.)
@@ -76,7 +76,7 @@ services:
       - ./secrets.cfg:/var/lib/buildbot/secrets.cfg:ro
 
   buildbot-debian: &defaultWorker
-    image: scummvm-buildbot-debian:latest
+    image: scummvm/buildbot-debian:latest
     environment: &defaultEnv
       # The IP address or hostname of the buildmaster.
       BUILDMASTER: buildbot
@@ -129,7 +129,7 @@ services:
 
   buildbot-nintendo:
     <<: *defaultWorker
-    image: scummvm-buildbot-nintendo:latest
+    image: scummvm/buildbot-nintendo:latest
     environment:
       <<: *defaultEnv
       CCACHE_DIR: /data/ccache/nintendo
@@ -137,7 +137,7 @@ services:
 
   buildbot-apple:
     <<: *defaultWorker
-    image: scummvm-buildbot-apple:latest
+    image: scummvm/buildbot-apple:latest
     environment:
       <<: *defaultEnv
       CCACHE_DIR: /data/ccache/apple
