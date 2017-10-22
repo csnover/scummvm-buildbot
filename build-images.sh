@@ -49,7 +49,7 @@ fi
 
 if [ $build_master -eq 1 ]; then
 	echo "Building master image"
-	docker build -t scummvm-buildbot-master \
+	docker build -t scummvm/buildbot-master \
 		-f "master/Dockerfile" \
 		.
 fi
