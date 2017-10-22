@@ -132,8 +132,8 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                                 make_target=Property("package_make_target"),
                                 package_directory=Property("package_directory", None),
                                 strip_binaries=Property("package_strip_binaries", None),
-                                doStepIf=should_package,
-                                logEnviron=False))
+                                env=compilation_environment,
+                                doStepIf=should_package))
 
         source_path = Property("package_filename")
         target_path = Interpolate("%s%%(prop:package_filename)s" % snapshots_dir)
