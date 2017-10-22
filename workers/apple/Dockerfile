@@ -94,6 +94,9 @@ RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 COPY common/library-rules/zlib.sh library-rules/
 RUN ./compile-libraries-ios.sh zlib
 
+COPY common/library-rules/bzip2.sh library-rules/
+RUN ./compile-libraries-ios.sh bzip2
+
 COPY common/library-rules/libpng1.6.sh library-rules/
 RUN ./compile-libraries-ios.sh libpng1.6
 
