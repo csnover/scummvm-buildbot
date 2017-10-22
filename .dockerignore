@@ -1,3 +1,2 @@
-workers/*/*
-!workers/*/buildbot.cfg
-workers/_template
+**/*.pyc
+workers/
