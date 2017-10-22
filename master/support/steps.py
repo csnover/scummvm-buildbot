@@ -125,12 +125,13 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
     def run(self):
         if self.strip_binaries or self.make_target is None:
             executable_files = yield self.send_command(command=["make", "print-executables"],
-                                                       collectStdout=True)
+                                                       collectStdout=True,
+                                                       logEnviron=False)
             assert executable_files
 
         if self.strip_binaries:
             if self.strip_binaries is True:
-                strip = "strip"
+                strip = self.env.get("STRIP", "strip")
             else:
                 strip = self.strip_binaries
             yield self.send_command(command=[strip, executable_files.split(" ")])
@@ -147,13 +148,16 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
 
         if self.make_target is None:
             dist_files = yield self.send_command(command=["make", "print-dists"],
-                                                 collectStdout=True)
+                                                 collectStdout=True,
+                                                 logEnviron=False)
             yield self.runRmdir(path.join(self.workdir, bundle_dir))
             yield self.runMkdir(path.join(self.workdir, bundle_dir))
             yield self.send_command(command=["rsync", "-av",
-                                             executable_files.split(" "), bundle_dir])
+                                             executable_files.split(" "), bundle_dir],
+                                    logEnviron=False)
             if dist_files:
-                yield self.send_command(command=["cp", "-a", dist_files.split(" "), bundle_dir])
+                yield self.send_command(command=["cp", "-a", dist_files.split(" "), bundle_dir],
+                                        logEnviron=False)
         else:
             yield self.runRmdir(path.join(self.workdir, bundle_dir))
             yield self.send_command(command=["make", self.make_target])
@@ -180,7 +184,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         archive_filename = "%s.%s" % (self.package_name, package_format)
         archiver += [archive_filename, bundle_dir]
 
-        yield self.send_command(command=archiver, env=compression_options)
+        yield self.send_command(command=archiver, env=compression_options, logEnviron=False)
         yield self.runRmdir(path.join(self.workdir, bundle_dir))
         self.setProperty("package_filename", archive_filename)
         defer.returnValue(builder.SUCCESS)
