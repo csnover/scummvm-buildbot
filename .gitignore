@@ -1,5 +1,3 @@
-buildbot-docker-example-config/
-buildbot-for-autocomplete/
 *.pyc
 docker-compose.override.yml
 secrets.cfg
