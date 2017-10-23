@@ -16,6 +16,10 @@
 ARG DEFAULT_BASE_IMAGE
 FROM ${DEFAULT_BASE_IMAGE}
 
+# To install anything, it is necessary to switch to the root user first, since
+# the default base image starts with the current user as the buildbot user.
+USER root
+
 # The default build context on the host is the `workers` directory, so that you
 # can access common files by referencing them as `common`. When copying
 # worker-specific files, reference the worker's directory by using $WORKER_NAME
