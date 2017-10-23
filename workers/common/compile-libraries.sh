@@ -30,10 +30,10 @@ set_toolchain () {
 	done
 
 	if [ "$CC" == "" ]; then
-		if [ "$GCC" != "" ]; then
-			export CC=$GCC
-		elif [ "$CLANG" != "" ]; then
+		if [ "$CLANG" != "" ]; then
 			export CC=$CLANG
+		elif [ "$GCC" != "" ]; then
+			export CC=$GCC
 		else
 			warning "Could not find a C compiler"
 			exit 1
@@ -41,10 +41,10 @@ set_toolchain () {
 	fi
 
 	if [ "$CXX" == "" ]; then
-		if [ "$GXX" != "" ]; then
-			export CXX=$GXX
-		elif [ "$CLANGXX" != "" ]; then
+		if [ "$CLANGXX" != "" ]; then
 			export CXX=$CLANGXX
+		elif [ "$GXX" != "" ]; then
+			export CXX=$GXX
 		else
 			warning "Could not find a C++ compiler"
 		fi
