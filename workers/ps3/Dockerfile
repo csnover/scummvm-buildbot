@@ -1,4 +1,6 @@
-FROM debian:stretch-slim AS builder
+ARG DEFAULT_BASE_IMAGE
+FROM ${DEFAULT_BASE_IMAGE} AS builder
+USER root
 
 RUN apt-get update && \
 	apt-get install -y \
@@ -39,7 +41,7 @@ RUN ./toolchain.sh
 
 RUN hg clone https://bitbucket.org/bgK/sdl_psl1ght/ /sdl -r psl1ght-2.0.3
 WORKDIR /sdl
-RUN ./script.sh && make && make install 
+RUN ./script.sh && make && make install
 
 FROM ${DEFAULT_BASE_IMAGE}
 USER root
@@ -62,4 +64,3 @@ RUN apt-get update && \
 
 USER buildbot
 WORKDIR /buildbot
-
