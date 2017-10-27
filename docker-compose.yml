@@ -143,6 +143,14 @@ services:
       CCACHE_DIR: /data/ccache/apple
       WORKERNAME: apple
 
+  buildbot-gcw0:
+    <<: *defaultWorker
+    image: scummvm/buildbot-gcw0:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/gcw0
+      WORKERNAME: gcw0
+
   buildbot-nintendo:
     <<: *defaultWorker
     image: scummvm/buildbot-nintendo:latest
