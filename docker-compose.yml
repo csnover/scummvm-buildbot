@@ -127,6 +127,14 @@ services:
       - ccache:/data/ccache
       - repository:/data/sharedrepo
 
+  buildbot-amigaos:
+    <<: *defaultWorker
+    image: scummvm/buildbot-amigaos:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/amigaos
+      WORKERNAME: amigaos
+
   buildbot-android:
     <<: *defaultWorker
     image: scummvm/buildbot-android:latest
