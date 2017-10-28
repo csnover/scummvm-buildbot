@@ -3,8 +3,8 @@ ARG DEFAULT_BASE_IMAGE
 # backwards-compatible
 FROM werner/devkitpro:latest as devkitpro
 FROM ${DEFAULT_BASE_IMAGE} as libraries
-ARG WORKER_NAME
 USER root
+ARG WORKER_NAME
 
 COPY --from=devkitpro /opt/devkitpro/devkitARM /opt/devkitpro/devkitARM
 COPY --from=devkitpro /opt/devkitpro/devkitPPC /opt/devkitpro/devkitPPC

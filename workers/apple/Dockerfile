@@ -1,9 +1,9 @@
 ARG DEFAULT_BASE_IMAGE
 FROM ${DEFAULT_BASE_IMAGE} as compilers
-ARG WORKER_NAME
 USER root
+ARG WORKER_NAME
 
-ENV SDK_VERSION=10.8
+ARG SDK_VERSION=10.8
 
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -39,7 +39,8 @@ ENV PATH=/opt/osxcross/bin:$PATH
 # deployment target or we compile all the dependencies ourselves
 ENV MACOSX_DEPLOYMENT_TARGET=10.6
 
-# libmpeg2 comes with a ton of dependencies, so is disabled for the moment
+# libmpeg2 comes with a ton of dependencies because the osxcross macports script
+# does not understand variants, so is disabled for the moment
 RUN echo 1 | osxcross-macports -s install \
 		curl \
 		faad2 \
@@ -123,16 +124,11 @@ COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-ios.sh mpeg2dec
 
 FROM ${DEFAULT_BASE_IMAGE}
-ARG WORKER_NAME
 USER root
+ARG WORKER_NAME
 
 COPY --from=compilers /opt/osxcross /opt/osxcross
 COPY --from=compilers /opt/ioscross /opt/ioscross
-
-LABEL maintainer="ScummVM Team <admin@scummvm.org>"
-
-ARG BUILDBOT_VERSION
-LABEL buildbot-version=${BUILDBOT_VERSION}
 
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \

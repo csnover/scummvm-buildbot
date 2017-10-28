@@ -16,6 +16,10 @@
 ARG DEFAULT_BASE_IMAGE
 FROM ${DEFAULT_BASE_IMAGE}
 
+# Please provide some different contact information here if you are an
+# individual maintainer for this worker.
+LABEL maintainer="ScummVM Team <admin@scummvm.org>"
+
 # To install anything, it is necessary to switch to the root user first, since
 # the default base image starts with the current user as the buildbot user.
 USER root
@@ -27,10 +31,6 @@ USER root
 # Note that if you use $WORKER_NAME after more than one FROM operation, you will
 # need to duplicate this ARG after each FROM.
 ARG WORKER_NAME
-
-# Please provide some different contact information here if you are an
-# individual maintainer for this worker.
-LABEL maintainer="ScummVM Team <admin@scummvm.org>"
 
 # The buildbot version will normally come from build-images.sh. This keeps all
 # images using the same version of Buildbot. If you use the default base image,

@@ -1,9 +1,7 @@
 ARG DEFAULT_BASE_IMAGE
 FROM ${DEFAULT_BASE_IMAGE} AS compiler
-ARG WORKER_NAME
 USER root
-
-LABEL maintainer="ScummVM Team <admin@scummvm.org>"
+ARG WORKER_NAME
 
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
