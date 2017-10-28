@@ -152,7 +152,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
                                                  logEnviron=False)
             yield self.runRmdir(path.join(self.workdir, bundle_dir))
             yield self.runMkdir(path.join(self.workdir, bundle_dir))
-            yield self.send_command(command=["rsync", "-av",
+            yield self.send_command(command=["rsync", "-aRv",
                                              executable_files.split(" "), bundle_dir],
                                     logEnviron=False)
             if dist_files:
