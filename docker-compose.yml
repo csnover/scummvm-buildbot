@@ -159,6 +159,14 @@ services:
       CCACHE_DIR: /data/ccache/nintendo
       WORKERNAME: nintendo
 
+  buildbot-psp:
+    <<: *defaultWorker
+    image: scummvm/buildbot-psp:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/psp
+      WORKERNAME: psp
+
   buildbot-ps3:
     <<: *defaultWorker
     image: scummvm/buildbot-ps3:latest
