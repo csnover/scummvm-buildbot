@@ -159,6 +159,14 @@ services:
       CCACHE_DIR: /data/ccache/gcw0
       WORKERNAME: gcw0
 
+  buildbot-haiku:
+    <<: *defaultWorker
+    image: scummvm/buildbot-haiku:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/haiku
+      WORKERNAME: haiku
+
   buildbot-nintendo:
     <<: *defaultWorker
     image: scummvm/buildbot-nintendo:latest
