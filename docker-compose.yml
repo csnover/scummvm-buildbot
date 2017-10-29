@@ -75,8 +75,8 @@ services:
       - ./workers:/var/lib/buildbot/master/workers:ro
       - ./secrets.cfg:/var/lib/buildbot/secrets.cfg:ro
 
-  buildbot-debian: &defaultWorker
-    image: scummvm/buildbot-debian:latest
+  buildbot-debian-x86_64: &defaultWorker
+    image: scummvm/buildbot-debian-x86_64:latest
     environment: &defaultEnv
       # The IP address or hostname of the buildmaster.
       BUILDMASTER: buildbot
@@ -89,7 +89,7 @@ services:
       CCACHE_COMPRESS: 1
 
       # The location of the worker's compiler cache.
-      CCACHE_DIR: /data/ccache/debian
+      CCACHE_DIR: /data/ccache/debian-x86_64
 
       # The maximum size of the worker's compiler cache.
       CCACHE_MAXSIZE: 1G
@@ -97,7 +97,7 @@ services:
       # The name of the worker. This is the name that will be used to generate
       # the names of builders attached to this worker, as well as the name that
       # is used when authenticating with the buildmaster.
-      WORKERNAME: debian
+      WORKERNAME: debian-x86_64
 
       # The password used for connecting to the buildmaster. This does not need
       # to be secure unless the buildmaster's worker port is exposed to the
@@ -148,6 +148,14 @@ services:
       <<: *defaultEnv
       CCACHE_DIR: /data/ccache/apple
       WORKERNAME: apple
+
+  buildbot-debian-x86:
+    <<: *defaultWorker
+    image: scummvm/buildbot-debian-x86:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/debian-x86
+      WORKERNAME: debian-x86
 
   buildbot-gcw0:
     <<: *defaultWorker
