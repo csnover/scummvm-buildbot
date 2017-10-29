@@ -102,7 +102,7 @@ services:
       # The password used for connecting to the buildmaster. This does not need
       # to be secure unless the buildmaster's worker port is exposed to the
       # internet, in which case it should be a strong password. This password
-      # must match the password given in `_secrets.py`.
+      # must match the password given in `secrets.cfg`.
       WORKERPASS: worker
 
       # The name of the container's host. Currently, this value is unused, but
