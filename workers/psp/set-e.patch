@@ -1,0 +1,13 @@
+diff --git a/toolchain.sh b/toolchain.sh
+index 9c3b2f8..564e440 100755
+--- a/toolchain.sh
++++ b/toolchain.sh
+@@ -1,6 +1,8 @@
+ #!/bin/bash
+ # toolchain.sh by Dan Peori (danpeori@oopo.net)
+ 
++set -e
++
+  ## Load and export shared functions
+  source common.sh
+  export -f num_cpus
