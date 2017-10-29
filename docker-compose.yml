@@ -121,8 +121,6 @@ services:
       # `buildbot.tac` template, because this is the file responsible for
       # clearing the environment variables when the Buildbot worker starts.
       WORKER_ENVIRONMENT_BLACKLIST: CONTAINER_HOST WORKERNAME WORKERPASS WORKER_ENVIRONMENT_BLACKLIST BUILDMASTER* DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1*
-    links:
-      - buildbot
     volumes: &defaultVolumes
       - ccache:/data/ccache
       - repository:/data/sharedrepo
