@@ -120,7 +120,7 @@ RUN ./compile-libraries-ios.sh libtheora
 
 RUN ./compile-libraries-ios.sh libvorbis
 
-COPY common/library-rules/mpeg2dec.sh library-rules/
+COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-ios.sh mpeg2dec
 
 FROM ${DEFAULT_BASE_IMAGE}
