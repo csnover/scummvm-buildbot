@@ -47,6 +47,7 @@ set_toolchain () {
 			export CXX=$GXX
 		else
 			warning "Could not find a C++ compiler"
+			exit 1
 		fi
 	fi
 
