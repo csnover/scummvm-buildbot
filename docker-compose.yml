@@ -197,6 +197,14 @@ services:
       CCACHE_DIR: /data/ccache/ps3
       WORKERNAME: ps3
 
+  buildbot-windows:
+    <<: *defaultWorker
+    image: scummvm/buildbot-windows:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/windows
+      WORKERNAME: windows
+
 volumes:
   ccache:
   database:
