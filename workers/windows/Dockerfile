@@ -24,7 +24,9 @@ WORKDIR /tmp/compile
 # (2) Links aren't set up to the prefixed compilers, so compile-libraries.sh
 #     doesn't find them and fails
 # To address these, we delete all the binaries and then generate our own links
-# here.
+# here. Unfortunately for #1 we cannot just put the cross-compiler bin after the
+# system bin in $PATH because then native configure scripts like sdl2-config
+# would be used instead of the ones needed by the cross-compiler.
 RUN for arch in i686 x86_64; do \
 		rm /usr/$arch-w64-mingw32/bin/* && \
 		for bin in /usr/bin/$arch-w64-mingw32-*; do \
