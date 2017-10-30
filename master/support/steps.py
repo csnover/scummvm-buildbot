@@ -167,6 +167,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         package_format = self.package_format
         if package_format is "zip":
             archiver = ["zip", "-8r"]
+            compression_options = {}
         else:
             if package_format is "tar.gz":
                 compression_flag = "j"
