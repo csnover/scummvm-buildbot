@@ -34,5 +34,6 @@ allow_shutdown = None
 
 s = Worker(buildmaster_host, port, workername, passwd, basedir,
            keepalive, umask=umask, maxdelay=maxdelay,
-           allow_shutdown=allow_shutdown)
+           allow_shutdown=allow_shutdown,
+           unicode_encoding='utf-8')
 s.setServiceParent(application)
