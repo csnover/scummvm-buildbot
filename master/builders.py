@@ -128,9 +128,9 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                                           hideStepIf=True,
                                           doStepIf=should_package))
         builder.addStep(Package(package_name=Property("package_name"),
+                                package_files=Property("package_files", None),
                                 package_format=Property("package_archive_format"),
                                 make_target=Property("package_make_target"),
-                                package_directory=Property("package_directory", None),
                                 strip_binaries=Property("package_strip_binaries", None),
                                 env=compilation_environment,
                                 doStepIf=should_package))
