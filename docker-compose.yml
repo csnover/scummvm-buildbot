@@ -197,6 +197,14 @@ services:
       CCACHE_DIR: /data/ccache/ps3
       WORKERNAME: ps3
 
+  buildbot-vita:
+    <<: *defaultWorker
+    image: scummvm/buildbot-vita:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/vita
+      WORKERNAME: vita
+
   buildbot-windows:
     <<: *defaultWorker
     image: scummvm/buildbot-windows:latest
