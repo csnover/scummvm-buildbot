@@ -1,50 +1,38 @@
-ARG DEFAULT_32_BIT_BASE_IMAGE
-FROM ${DEFAULT_32_BIT_BASE_IMAGE} AS compiler
-ARG WORKER_NAME
+ARG DEFAULT_BASE_IMAGE
+ARG DEFAULT_OS_IMAGE
+FROM ${DEFAULT_OS_IMAGE} AS compiler
 USER root
-
-ARG URL=https://github.com/perweij/amigaos-cross-toolchain/archive/014a8b15cb82c77aa138094f638246598858e620.tar.gz
 
 WORKDIR /tmp/compile
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-		bison \
-		ca-certificates \
-		flex \
-		g++ \
-		gcc \
-		make \
-		patch \
-		python2.7 \
-		python2.7-dev \
-		python-setuptools \
-		subversion \
-		wget && \
-	rm -rf /var/lib/apt/lists/* && \
-	wget --progress=bar:force:noscroll -O - ${URL} |tar xzf -
-COPY ${WORKER_NAME}/toolchain-ppc.patch ./
-RUN cd amigaos-cross-toolchain*/ && \
-	patch -p1 < ../toolchain-ppc.patch && \
-	./toolchain-ppc --binutils 2.23.2 --gcc 4.9.1 --prefix /opt/amigaos fetch-all
-RUN apt-get update && \
-	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-		file \
-		libncurses-dev && \
-	rm -rf /var/lib/apt/lists/*
-COPY ${WORKER_NAME}/gcc.patch ./
-RUN cd amigaos-cross-toolchain*/ && \
-	patch -p1 -d .build-ppc/archives/gcc-4.9.1/ < ../gcc.patch && \
-	./toolchain-ppc --binutils 2.23.2 --gcc 4.9.1 --prefix /opt/amigaos build
-
-# dpkg-dev is required to retrieve sources from apt
-RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
+		dirmngr \
+		gnupg && \
+	sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 		> /etc/apt/sources.list.d/debsrc.list && \
+	apt-key adv \
+		--keyserver hkp://keyserver.ubuntu.com:80 \
+		--recv-keys 379CE192D401AB61 && \
+	echo 'deb http://dl.bintray.com/sba1/adtools-deb /' \
+		> /etc/apt/sources.list.d/adtools.list && \
 	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-		dpkg-dev
+		adtools-binutils \
+		adtools-sdk \
+		adtools-gcc \
+		dpkg-dev \
+# All of this is temporarily necessary because adtools-sdk does not extract the
+# pthreads library as of https://github.com/sba1/adtools commit 7ef1f49
+		lhasa && \
+	wget --progress=bar:force:noscroll -O sdk.lha \
+		"http://hyperion-entertainment.biz/index.php/downloads?view=download&format=raw&file=69" && \
+	lhasa x sdk.lha SDK_Install/pthread.lha && \
+	lhasa x SDK_Install/pthread.lha && \
+	find Local/ -type f -exec chmod 644 {} + && \
+	cp -Rv Local/* /usr/ppc-amigaos/SDK/ && \
+	rm -r sdk.lha SDK_Install/ Local/
 
-RUN sed -i 's/#define SIZE_MAX ULONG_MAX/#define SIZE_MAX 4294967295UL/' /opt/amigaos/ppc-amigaos/SDK/newlib/include/stdint.h
-
+ARG WORKER_NAME
 COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-amigaos.sh ./
 
 # Library rules are copied separately along with their corresponding library
@@ -53,15 +41,14 @@ COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-amigaos.sh ./
 COPY common/library-rules/zlib.sh library-rules/
 RUN ./compile-libraries-amigaos.sh zlib
 
-COPY common/library-rules/bzip2.sh library-rules/
-RUN ./compile-libraries-amigaos.sh bzip2
-
 COPY common/library-rules/libpng1.6.sh library-rules/
 RUN ./compile-libraries-amigaos.sh libpng1.6
 
 COPY common/library-rules/freetype.sh library-rules/
 RUN ./compile-libraries-amigaos.sh freetype
 
+RUN sed -i 's/#define SIZE_MAX ULONG_MAX/#define SIZE_MAX 4294967295UL/' \
+	/usr/ppc-amigaos/SDK/newlib/include/stdint.h
 COPY common/library-rules/libjpeg-turbo.sh library-rules/
 RUN ./compile-libraries-amigaos.sh libjpeg-turbo
 
@@ -90,14 +77,38 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 	lha x sdl.lha && \
 	find SDL2_developer_release -type d -exec chmod 755 {} + && \
 	find SDL2_developer_release -type f -exec chmod 644 {} + && \
-	cp -RT SDL2_developer_release/SDK/local/newlib/ /opt/amigaos && \
+	cp -RT SDL2_developer_release/SDK/local/newlib/ /usr/ppc-amigaos && \
 	rm -r SDL2_developer_release sdl.lha && \
-	sed -i 's#/SDK/local/newlib/#/opt/amigaos/#g' /opt/amigaos/bin/sdl2-config && \
-	chmod 755 /opt/amigaos/bin/sdl2-config
+	sed -i 's#/SDK/local/newlib/#/usr/ppc-amigaos/#g' /usr/ppc-amigaos/bin/sdl2-config && \
+	chmod 755 /usr/ppc-amigaos/bin/sdl2-config
 
-FROM ${DEFAULT_32_BIT_BASE_IMAGE}
+# The amigaosdist build target calls this Amiga-only `rx` function; on the old
+# buildbot it was just this script that does nothing, on an actual Amiga it
+# looks like it is a formatted README generator
+RUN printf "#!/bin/sh\ntouch README.guide\n" > /usr/ppc-amigaos/bin/rx && \
+	chmod 755 /usr/ppc-amigaos/bin/rx
+
+FROM ${DEFAULT_BASE_IMAGE}
 USER root
-COPY --from=compiler /opt/amigaos /opt/amigaos
-ENV PATH=/opt/amigaos/bin:$PATH
+RUN apt-get update && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		dirmngr \
+		gnupg && \
+	apt-key adv \
+		--keyserver hkp://keyserver.ubuntu.com:80 \
+		--recv-keys 379CE192D401AB61 && \
+	echo 'deb http://dl.bintray.com/sba1/adtools-deb /' \
+		> /etc/apt/sources.list.d/adtools.list && \
+	apt-get update && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		adtools-binutils \
+		adtools-gcc && \
+	apt-get remove -y gnupg dirmngr && \
+	apt-get autoremove -y && \
+	apt-get clean && \
+	rm -rf /var/lib/apt/lists/*
+
+COPY --from=compiler /usr/ppc-amigaos /usr/ppc-amigaos
+ENV PATH=$PATH:/usr/ppc-amigaos/bin
 USER buildbot
 WORKDIR /buildbot

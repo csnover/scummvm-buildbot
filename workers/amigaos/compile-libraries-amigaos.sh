@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-./compile-libraries.sh ppc-amigaos /opt/amigaos $@
+./compile-libraries.sh ppc-amigaos /usr/ppc-amigaos $@
