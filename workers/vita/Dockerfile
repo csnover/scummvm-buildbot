@@ -4,7 +4,6 @@ FROM ${DEFAULT_OS_IMAGE} AS compiler
 USER root
 ARG WORKER_NAME
 
-# dpkg-dev is required to retrieve sources from apt
 RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 		> /etc/apt/sources.list.d/debsrc.list && \
 	apt-get update && \
