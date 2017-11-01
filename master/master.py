@@ -105,12 +105,15 @@ class DebouncedBuilderPrioritizer:
         defer.returnValue([bp[0] for bp in builder_priorities])
 
 def make_buildmaster_config():
-    secrets = run_path(environ.get("SCUMMVM_SECRETS_FILE",
-                                   path.join(path.dirname(__file__), "..", "secrets.cfg")))
+    secrets_path = environ.get("SCUMMVM_SECRETS_FILE",
+                               path.join(path.dirname(__file__), "..", "secrets.cfg"))
+    assert path.isfile(secrets_path)
+    secrets = run_path(secrets_path)
 
     worker_configs = {}
     workers_dir = environ.get("SCUMMVM_WORKER_CONFIG_DIR",
                               path.join(path.dirname(__file__), "..", "workers"))
+    assert path.isdir(workers_dir)
 
     for worker_name in listdir(workers_dir):
         if worker_name == "_template":
