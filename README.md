@@ -35,8 +35,6 @@ are in `workers` subdirectories.
   worker_password = "worker"
   ```
 
-* Run `build-images.sh all` to build the buildmaster Docker image + all worker
-  images
 * Run `docker-compose up -d`
 * Go to http://localhost:28453/ in your browser
 
