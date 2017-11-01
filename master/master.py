@@ -167,7 +167,7 @@ def make_buildmaster_config():
         "prioritizeBuilders": prioritizer.debounce_prioritize,
         "protocols": make_protocols(worker_port),
         "schedulers": make_schedulers(make_builder_names(worker_configs), project_id, repo_id),
-        "services": make_services(irc_username, secrets["irc_password"], irc_channel),
+        "services": make_services(irc_username, secrets.get("irc_password", None), irc_channel),
         "title": environ.get("BUILDBOT_SITE_TITLE"),
         "titleURL": environ.get("BUILDBOT_SITE_URL"),
         "workers": make_workers(list(worker_configs), secrets),
