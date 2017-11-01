@@ -1,8 +1,6 @@
 ARG DEFAULT_BASE_IMAGE
 ARG DEFAULT_OS_IMAGE
-# TODO: Ask upstream to give us tags, since new devkitPro are frequently not
-# backwards-compatible
-FROM werner/devkitpro:latest as devkitpro
+FROM werner/devkitpro@sha256:c5c6762b55c444fcd2c8b3d7265b11922e5b7885451bdd2a9d25c6d953d434b2 as devkitpro
 FROM ${DEFAULT_OS_IMAGE} as libraries
 USER root
 ARG WORKER_NAME
