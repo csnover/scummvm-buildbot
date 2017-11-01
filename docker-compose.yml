@@ -197,6 +197,14 @@ services:
       CCACHE_DIR: /data/ccache/ps3
       WORKERNAME: ps3
 
+  buildbot-raspberrypi:
+    <<: *defaultWorker
+    image: scummvm/buildbot-raspberrypi:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/raspberrypi
+      WORKERNAME: raspberrypi
+
   buildbot-vita:
     <<: *defaultWorker
     image: scummvm/buildbot-vita:latest
@@ -212,14 +220,6 @@ services:
       <<: *defaultEnv
       CCACHE_DIR: /data/ccache/windows
       WORKERNAME: windows
-
-  buildbot-raspberrypi:
-    <<: *defaultWorker
-    image: scummvm/buildbot-raspberrypi:latest
-    environment:
-      <<: *defaultEnv
-      CCACHE_DIR: /data/ccache/raspberrypi
-      WORKERNAME: raspberrypi
 
 volumes:
   ccache:
