@@ -1,5 +1,6 @@
 ARG DEFAULT_BASE_IMAGE
-FROM ${DEFAULT_BASE_IMAGE} as compilers
+ARG DEFAULT_OS_IMAGE
+FROM ${DEFAULT_OS_IMAGE} as compilers
 USER root
 ARG WORKER_NAME
 
@@ -82,21 +83,18 @@ ENV LD_LIBRARY_PATH=/opt/ioscross/bin
 WORKDIR /tmp/compile
 COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-ios.sh ./
 
-# dpkg-dev is required to retrieve sources from apt
 RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 		> /etc/apt/sources.list.d/debsrc.list && \
 	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-		dpkg-dev
+		dpkg-dev \
+		pkg-config
 
 # Library rules are copied separately along with their corresponding library
 # so that changes or additions to individual library scripts don't invalidate
 # every single library layer
 COPY common/library-rules/zlib.sh library-rules/
 RUN ./compile-libraries-ios.sh zlib
-
-COPY common/library-rules/bzip2.sh library-rules/
-RUN ./compile-libraries-ios.sh bzip2
 
 COPY common/library-rules/libpng1.6.sh library-rules/
 RUN ./compile-libraries-ios.sh libpng1.6

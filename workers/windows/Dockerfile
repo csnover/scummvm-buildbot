@@ -1,6 +1,6 @@
-# Using the 64-bit Debian image here just to reduce the number of layers with
-# redundant data in them; DEFAULT_BASE_IMAGE would work fine too
-FROM scummvm/buildbot-debian-x86_64:latest AS compiler
+ARG DEFAULT_BASE_IMAGE
+ARG DEFAULT_OS_IMAGE
+FROM ${DEFAULT_OS_IMAGE} AS compiler
 USER root
 ARG WORKER_NAME
 
@@ -12,32 +12,11 @@ RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 		dpkg-dev \
 		libz-mingw-w64-dev \
-		mingw-w64
+		mingw-w64 \
+		pkg-config
 
 WORKDIR /tmp/compile
-# There are two problems with the sysroots that Debian sets up for the mingw-w64
-# cross-compiler:
-# (1) Unprefixed links are set up to a selection of cross-compiler binaries,
-#     which breaks compilation of things like FreeType which need access to the
-#     host system's compiler and assumes the unprefixed binaries are the native
-#     compiler binaries;
-# (2) Links aren't set up to the prefixed compilers, so compile-libraries.sh
-#     doesn't find them and fails
-# To address these, we delete all the binaries and then generate our own links
-# here. Unfortunately for #1 we cannot just put the cross-compiler bin after the
-# system bin in $PATH because then native configure scripts like sdl2-config
-# would be used instead of the ones needed by the cross-compiler.
-RUN for arch in i686 x86_64; do \
-		rm /usr/$arch-w64-mingw32/bin/* && \
-		for bin in /usr/bin/$arch-w64-mingw32-*; do \
-			ln -s $bin /usr/$arch-w64-mingw32/bin/$(basename $bin); \
-		done \
-	done
-
 COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-windows.sh ./
-
-COPY common/library-rules/bzip2.sh library-rules/
-RUN ./compile-libraries-windows.sh bzip2
 
 COPY common/library-rules/libpng1.6.sh library-rules/
 RUN ./compile-libraries-windows.sh libpng1.6
@@ -71,6 +50,8 @@ RUN ./compile-libraries-windows.sh libsdl2-net
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-windows.sh mpeg2dec
 
+# Using the 64-bit Debian image here just to reduce the number of layers with
+# redundant data in them; DEFAULT_BASE_IMAGE would work fine too
 FROM scummvm/buildbot-debian-x86_64:latest
 USER root
 

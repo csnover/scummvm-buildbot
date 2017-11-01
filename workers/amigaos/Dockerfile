@@ -21,6 +21,7 @@ RUN apt-get update && \
 		adtools-sdk \
 		adtools-gcc \
 		dpkg-dev \
+		pkg-config \
 # All of this is temporarily necessary because adtools-sdk does not extract the
 # pthreads library as of https://github.com/sba1/adtools commit 7ef1f49
 		lhasa && \

@@ -1,5 +1,6 @@
 ARG DEFAULT_BASE_IMAGE
-FROM ${DEFAULT_BASE_IMAGE} AS compiler
+ARG DEFAULT_OS_IMAGE
+FROM ${DEFAULT_OS_IMAGE} AS compiler
 USER root
 ARG WORKER_NAME
 
@@ -7,6 +8,7 @@ RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 		ca-certificates \
 		openjdk-8-jre-headless \
+		python \
 		unzip \
 		wget && \
 	rm -rf /var/lib/apt/lists/*
@@ -75,21 +77,22 @@ RUN wget --progress=bar:force:noscroll -O sdk.zip \
 	chmod 755 /opt/android/build/extract_platform.py && \
 	sed -i "1s|^|#!$(which python)\n|" /opt/android/build/extract_platform.py
 
-WORKDIR /tmp/compile
-COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-android.sh ./
-
 # dpkg-dev is required to retrieve sources from apt
 RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 		> /etc/apt/sources.list.d/debsrc.list && \
 	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		debhelper \
 		dpkg-dev \
-		libncurses5
+		libncurses5 \
+		pkg-config
+
+ENV PATH=$PATH:/opt/android/arm/bin
+
+WORKDIR /tmp/compile
+COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-android.sh ./
 
 # Android comes with a suitable zlib already
-
-COPY common/library-rules/bzip2.sh library-rules/
-RUN ./compile-libraries-android.sh bzip2
 
 COPY common/library-rules/libpng1.6.sh library-rules/
 RUN ./compile-libraries-android.sh libpng1.6
@@ -138,14 +141,14 @@ RUN apt-get update && \
 		openjdk-8-jdk-headless && \
 	rm -rf /var/lib/apt/lists/*
 
-ENV PATH=/opt/android/arm/bin:$PATH \
+ENV PATH=$PATH:/opt/android/arm/bin \
 	ADDR2LINE=arm-linux-androideabi-addr2line \
 	AR=arm-linux-androideabi-ar \
 	AS=arm-linux-androideabi-as \
 	CXX=arm-linux-androideabi-c++ \
 	CXXFILT=arm-linux-androideabi-c++filt \
-	CXXFLAGS="--sysroot=/opt/android/arm/sysroot -isystem /opt/android/arm/include" \
-	LDFLAGS="--sysroot=/opt/android/arm/sysroot -L /opt/android/arm/lib -lgnustl_shared" \
+	CXXFLAGS="--sysroot=/opt/android/arm/sysroot" \
+	LDFLAGS="--sysroot=/opt/android/arm/sysroot -lgnustl_shared" \
 	CC=arm-linux-androideabi-clang \
 	CPP=arm-linux-androideabi-cpp \
 	DWP=arm-linux-androideabi-dwp \

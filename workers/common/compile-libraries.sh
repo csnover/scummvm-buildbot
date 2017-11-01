@@ -19,14 +19,13 @@ set_toolchain () {
 	local prefix=$2
 	local bin_dir="$prefix/bin"
 
-	for bin in $(ls $bin_dir); do
-		if [[ $bin == $host-* ]]; then
-			local bin_name=${bin#$host-}
-			local var_name=${bin_name^^}
-			var_name=${var_name//+/X}
-			var_name=$(echo -n $var_name |sed "s/[^A-Z0-9_]/_/g")
-			export $var_name="$bin_dir/$bin"
-		fi
+	for bin in $(find $bin_dir ${PATH//:/ } -maxdepth 1 -name "$host-*"); do
+		local bin_name=$(basename $bin)
+		bin_name=${bin_name#$host-}
+		local var_name=${bin_name^^}
+		var_name=${var_name//+/X}
+		var_name=$(echo -n $var_name |sed "s/[^A-Z0-9_]/_/g")
+		export $var_name=$bin
 	done
 
 	if [ "$CC" == "" ]; then
@@ -52,12 +51,8 @@ set_toolchain () {
 	fi
 
 	export ACLOCAL_PATH=$prefix/share/aclocal
-	export CPPFLAGS="$CPPFLAGS -I$prefix/include"
-	export LDFLAGS="$LDFLAGS -L$prefix/lib"
-	export PATH=$bin_dir:$orig_path
 	export PKG_CONFIG_LIBDIR=$prefix/lib
 	export PKG_CONFIG_PATH=$prefix/lib/pkgconfig
-	export PKG_CONFIG_SYSROOT_DIR=$prefix
 }
 
 get_dependencies () {
@@ -117,10 +112,17 @@ fatal_error () {
 set -eE
 trap fatal_error ERR
 
-if [ "$1" == "--help" ]; then
-	usage
-	exit 0
-fi
+while [ $# -gt 0 ]; do
+	case arg in
+		--help)
+			usage
+			exit 0
+			;;
+		*)
+			break
+			;;
+	esac
+done
 
 if [ $# -lt 3 ]; then
 	usage

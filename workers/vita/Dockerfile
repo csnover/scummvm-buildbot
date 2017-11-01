@@ -67,10 +67,6 @@ RUN ./compile-libraries-vita.sh libvorbis
 COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-vita.sh mpeg2dec
 
-ENV CFLAGS="$CFLAGS -isystem $VITASDK/include" \
-	CXXFLAGS="$CXXFLAGS -isystem $VITASDK/include" \
-	LDFLAGS="$LDFLAGS -L $VITASDK/lib"
-
 RUN wget --progress=bar:force:noscroll -O - \
 		https://github.com/frangarcj/vita2dlib/archive/fbo.tar.gz \
 		| tar -zxf - && \

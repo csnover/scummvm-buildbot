@@ -1,13 +1,18 @@
 ARG DEFAULT_BASE_IMAGE
+ARG DEFAULT_OS_IMAGE
 # TODO: Ask upstream to give us tags, since new devkitPro are frequently not
 # backwards-compatible
 FROM werner/devkitpro:latest as devkitpro
-FROM ${DEFAULT_BASE_IMAGE} as libraries
+FROM ${DEFAULT_OS_IMAGE} as libraries
 USER root
 ARG WORKER_NAME
 
 COPY --from=devkitpro /opt/devkitpro/devkitPPC /opt/devkitpro/devkitPPC
 COPY --from=devkitpro /opt/devkitpro/libogc /opt/devkitpro/libogc
+
+ENV DEVKITPRO=/opt/devkitpro
+ENV DEVKITPPC=$DEVKITPRO/devkitPPC
+ENV PATH=$PATH:$DEVKITPPC/bin
 
 # dpkg-dev is required to retrieve sources from apt
 # libgmp10 is required by the ARM compiler
@@ -67,14 +72,8 @@ RUN ./compile-libraries-nintendo.sh libgxflux
 FROM ${DEFAULT_BASE_IMAGE}
 USER root
 
-COPY --from=libraries /opt/devkitpro/devkitARM /opt/devkitpro/devkitARM
 COPY --from=libraries /opt/devkitpro/devkitPPC /opt/devkitpro/devkitPPC
-COPY --from=libraries /opt/devkitpro/libctru /opt/devkitpro/libctru
-COPY --from=libraries /opt/devkitpro/libgba /opt/devkitpro/libgba
-COPY --from=libraries /opt/devkitpro/libmirko /opt/devkitpro/libmirko
-COPY --from=libraries /opt/devkitpro/libnds /opt/devkitpro/libnds
 COPY --from=libraries /opt/devkitpro/libogc /opt/devkitpro/libogc
-COPY --from=libraries /tmp/compile /tmp/compile
 
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -82,10 +81,9 @@ RUN apt-get update && \
 		&& \
 	rm -rf /var/lib/apt/lists/*
 
-ENV PATH=/opt/devkitpro/devkitARM/bin:/opt/devkitpro/devkitPPC/bin:$PATH
 ENV DEVKITPRO=/opt/devkitpro
-ENV DEVKITARM=$DEVKITPRO/devkitARM
 ENV DEVKITPPC=$DEVKITPRO/devkitPPC
+ENV PATH=$PATH:$DEVKITPPC/bin:$DEVKITPPC/powerpc-eabi/bin
 
 USER buildbot
 WORKDIR /buildbot

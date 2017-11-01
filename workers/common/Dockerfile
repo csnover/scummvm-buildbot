@@ -18,6 +18,7 @@ RUN apt-get update && \
 		python-twisted \
 		rsync \
 		xz-utils \
+		zip \
 		&& \
 	rm -rf /var/lib/apt/lists/*
 
