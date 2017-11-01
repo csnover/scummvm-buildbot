@@ -6,12 +6,7 @@ FROM ${DEFAULT_BASE_IMAGE} as libraries
 USER root
 ARG WORKER_NAME
 
-COPY --from=devkitpro /opt/devkitpro/devkitARM /opt/devkitpro/devkitARM
 COPY --from=devkitpro /opt/devkitpro/devkitPPC /opt/devkitpro/devkitPPC
-COPY --from=devkitpro /opt/devkitpro/libctru /opt/devkitpro/libctru
-COPY --from=devkitpro /opt/devkitpro/libgba /opt/devkitpro/libgba
-COPY --from=devkitpro /opt/devkitpro/libmirko /opt/devkitpro/libmirko
-COPY --from=devkitpro /opt/devkitpro/libnds /opt/devkitpro/libnds
 COPY --from=devkitpro /opt/devkitpro/libogc /opt/devkitpro/libogc
 
 # dpkg-dev is required to retrieve sources from apt
