@@ -16,6 +16,7 @@ are in `workers` subdirectories.
 * Successful builds are automatically packaged and uploaded for immediate
   consumption
 * Workers may optionally share a single Git repository
+* Debug symbols may be split into their own separate archives during packaging
 * Builds automatically scale across all available CPU cores
 
 ## Requirements

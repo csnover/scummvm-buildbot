@@ -38,9 +38,11 @@ def is_not_configured(step):
     return not step.getProperty("already_configured", False)
 
 def should_package(step):
-    if step.getProperty("got_revision") and step.getProperty("package_archive_format", None) is not False:
-        return True
-    return False
+    return step.getProperty("got_revision") and \
+        step.getProperty("package_archive_format", None) is not False
+
+def should_package_debug(step):
+    return should_package(step) and step.getProperty("debug_package_filename")
 
 def pick_next_build(_, build_requests):
     """
@@ -53,6 +55,24 @@ def pick_next_build(_, build_requests):
         if best_request.submittedAt < request.submittedAt:
             best_request = request
     return best_request
+
+def make_uploader_steps(builder, snapshots_dir, snapshots_url, publish_name, property_name, latest_link, do_step_if):
+    source_path = Property(property_name, None)
+    target_path = Interpolate("%s%%(prop:%s)s" % (snapshots_dir, property_name))
+    target_url = Interpolate("%s%%(prop:%s)s" % (snapshots_url, property_name))
+    target_link = latest_link
+    builder.addStep(CleaningFileUpload(name="publish %s" % publish_name,
+                                       workersrc=source_path,
+                                       masterdest=target_path,
+                                       url=target_url,
+                                       clean=True,
+                                       doStepIf=do_step_if))
+    builder.addStep(steps.MasterShellCommand(name="update latest %s" % publish_name,
+                                             command=["ln", "-sf", target_path, target_link],
+                                             logEnviron=False,
+                                             hideStepIf=True,
+                                             doStepIf=do_step_if))
+
 
 def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir, snapshots_url, snapshots_default_max):
     if snapshots_dir and snapshots_dir[-1] is not "/":
@@ -131,35 +151,38 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                                 package_files=Property("package_files", None),
                                 package_format=Property("package_archive_format"),
                                 make_target=Property("package_make_target"),
-                                strip_binaries=Property("package_strip_binaries", None),
+                                split_debug_package=Property("split_debug_package", True),
                                 env=compilation_environment,
                                 doStepIf=should_package))
 
-        source_path = Property("package_filename")
-        target_path = Interpolate("%s%%(prop:package_filename)s" % snapshots_dir)
-        target_url = Interpolate("%s%%(prop:package_filename)s" % snapshots_url)
-        # This is not an ideal target link calculation since the archive format
-        # in package_filename might be fixed up by the Package step, but here
-        # only None is converted into tar.xz, which is not exactly the same
-        target_link = Interpolate("%s%%(prop:buildername)s-latest."
+        latest_link = Interpolate("%s%%(prop:buildername)s-latest."
                                   "%%(prop:package_archive_format:-tar.xz)s" % snapshots_dir)
+        make_uploader_steps(builder=builder,
+                            snapshots_dir=snapshots_dir,
+                            snapshots_url=snapshots_url,
+                            publish_name="archive",
+                            property_name="package_filename",
+                            latest_link=latest_link,
+                            do_step_if=should_package)
 
-        builder.addStep(CleaningFileUpload(name="publish",
-                                           workersrc=source_path,
-                                           masterdest=target_path,
-                                           url=target_url,
-                                           clean=True,
-                                           doStepIf=should_package))
-        builder.addStep(steps.MasterShellCommand(name="update latest archive",
-                                                 command=["ln", "-sf", target_path, target_link],
-                                                 logEnviron=False,
-                                                 doStepIf=should_package))
+        latest_link = Interpolate("%s%%(prop:buildername)s"
+                                  "-latest-debug-symbols.tar.xz" % snapshots_dir)
+        make_uploader_steps(builder=builder,
+                            snapshots_dir=snapshots_dir,
+                            snapshots_url=snapshots_url,
+                            publish_name="debug archive",
+                            property_name="debug_package_filename",
+                            latest_link=latest_link,
+                            do_step_if=should_package_debug)
+
         builder.addStep(MasterCleanSnapshots(name="clean old snapshots",
                                              workdir=snapshots_dir,
                                              file_prefix=Interpolate("%(prop:buildername)s-"),
                                              num_to_keep=Property("num_snapshots_to_keep",
                                                                   snapshots_default_max),
-                                             doStepIf=should_package))
+                                             secondary_file_suffix="-debug-symbols",
+                                             doStepIf=should_package,
+                                             hideStepIf=True))
 
     return util.BuilderConfig(name=name,
                               workername=worker_name,
