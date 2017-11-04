@@ -163,6 +163,14 @@ services:
       CCACHE_DIR: /data/ccache/debian-x86
       WORKERNAME: debian-x86
 
+  buildbot-dreamcast:
+    <<: *defaultWorker
+    image: scummvm/buildbot-dreamcast:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/dreamcast
+      WORKERNAME: dreamcast
+
   buildbot-freemint:
     <<: *defaultWorker
     image: scummvm/buildbot-freemint:latest
