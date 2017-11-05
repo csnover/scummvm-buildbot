@@ -29,7 +29,8 @@ def compute_configure(props):
     command += args
 
     if ("--disable-all-engines" not in args
-            and not any(arg.startswith("--enable-engine") for arg in args)):
+            and not any(arg.startswith("--enable-engine") for arg in args)
+            and not any(arg.startswith("--disable-engine") for arg in args)):
         command.append("--enable-all-engines")
 
     return command
