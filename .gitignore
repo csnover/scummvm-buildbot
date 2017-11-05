@@ -1,3 +1,4 @@
 *.pyc
 docker-compose.override.yml
 secrets.cfg
+.DS_Store
