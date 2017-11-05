@@ -132,13 +132,14 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         self.package_files = package_files
         self.make_target = make_target
         self.split_debug_package = split_debug_package
+        self.packaging_results = builder.SUCCESS
 
     @defer.inlineCallbacks
     def send_command(self, **kwargs):
         cmd = yield self.makeRemoteShellCommand(**kwargs)
         yield self.runCommand(cmd)
         if cmd.didFail():
-            raise BuildStepFailed()
+            raise BuildStepFailed(cmd.stderr.strip())
         self.updateSummary()
         defer.returnValue(cmd.stdout.strip())
 
@@ -196,10 +197,18 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
                                     logEnviron=False)
             yield self.send_command(command=["mv", stripped_file_name, file_name],
                                     logEnviron=False)
-            yield self.send_command(command=[objcopy,
-                                             "--add-gnu-debuglink=%s" % debug_file_name,
-                                             file_name],
-                                    logEnviron=False)
+            try:
+                yield self.send_command(command=[objcopy,
+                                                 "--add-gnu-debuglink=%s" % debug_file_name,
+                                                 file_name],
+                                        logEnviron=False,
+                                        collectStderr=True)
+            except BuildStepFailed, error:
+                # Setting up the debug link is not critical and fails for
+                # a.out executable types
+                self.addCompleteLog("warnings (1)", error.args[0] + "\n")
+                self.packaging_results = builder.WARNINGS
+
             debug_files[0].append(debug_file_name)
             has_dwp = yield self.pathExists(path.join(self.workdir, file_name + ".dwp"))
             if has_dwp:
@@ -208,6 +217,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
 
     @defer.inlineCallbacks
     def run(self):
+        self.packaging_results = builder.SUCCESS
         if self.split_debug_package or self.make_target is None:
             executable_files = yield self.send_command(command=["make", "print-executables"],
                                                        collectStdout=True,
@@ -276,4 +286,4 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
             yield self.send_command(command=["rm", "-r", debug_files[0]], logEnviron=False)
             self.setProperty("debug_package_filename", debug_archive_filename)
 
-        defer.returnValue(builder.SUCCESS)
+        defer.returnValue(self.packaging_results)
