@@ -163,6 +163,14 @@ services:
       CCACHE_DIR: /data/ccache/debian-x86
       WORKERNAME: debian-x86
 
+  buildbot-freemint:
+    <<: *defaultWorker
+    image: scummvm/buildbot-freemint:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/freemint
+      WORKERNAME: freemint
+
   buildbot-gcw0:
     <<: *defaultWorker
     image: scummvm/buildbot-gcw0:latest
