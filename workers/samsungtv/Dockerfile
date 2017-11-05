@@ -67,5 +67,30 @@ RUN apt-get update && \
 
 COPY --from=compiler /usr/arm-linux-gnueabi /usr/arm-linux-gnueabi
 
+ENV PATH=$PATH:/usr/arm-linux-gnueabi/bin \
+	ADDR2LINE=arm-linux-gnueabi-addr2line \
+	AR=arm-linux-gnueabi-ar \
+	AS=arm-linux-gnueabi-as \
+	CXX=arm-linux-gnueabi-g++ \
+	CXXFILT=arm-linux-gnueabi-c++filt \
+	CPP=arm-linux-gnueabi-cpp \
+	DWP=arm-linux-gnueabi-dwp \
+	ELFEDIT=arm-linux-gnueabi-elfedit \
+	GXX=arm-linux-gnueabi-g++ \
+	GCC=arm-linux-gnueabi-gcc \
+	GCOV=arm-linux-gnueabi-gcov \
+	GCOV_DUMP=arm-linux-gnueabi-gcov-dump \
+	GCOV_TOOL=arm-linux-gnueabi-gcov-tool \
+	GPROF=arm-linux-gnueabi-gprof \
+	LD=arm-linux-gnueabi-ld \
+	NM=arm-linux-gnueabi-nm \
+	OBJCOPY=arm-linux-gnueabi-objcopy \
+	OBJDUMP=arm-linux-gnueabi-objdump \
+	RANLIB=arm-linux-gnueabi-ranlib \
+	READELF=arm-linux-gnueabi-readelf \
+	SIZE=arm-linux-gnueabi-size \
+	STRINGS=arm-linux-gnueabi-strings \
+	STRIP=arm-linux-gnueabi-strip
+
 USER buildbot
 WORKDIR /buildbot
