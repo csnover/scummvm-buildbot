@@ -108,6 +108,30 @@ class MasterCleanSnapshots(BuildStep):
         defer.returnValue(builder.SUCCESS)
 
 class Package(BuildStep, ShellMixin, CompositeStepMixin):
+    SPLIT_DEBUG_SYMBOLS_SCRIPT = """
+        set -e
+        strip=%s
+        objcopy=%s
+        for file in %s; do
+            echo $file
+            $strip --only-keep-debug -o "$file.dbg" "$file"
+            $strip -o "$file.st" "$file"
+            mv "$file" "$file.orig"
+            mv "$file.st" "$file"
+            $objcopy --add-gnu-debuglink="$file.dbg" "$file" || true
+        done
+    """
+
+    RESTORE_UNSTRIPPED_BINARIES_SCRIPT = """
+        set -e
+        for debug_file in %s; do
+            orig_file=${debug_file%%.dbg}
+            echo $orig_file
+            mv "$orig_file.orig" "$orig_file"
+            rm "$debug_file"
+        done
+    """
+
     name = "package"
     flunkOnFailure = True
     haltOnFailure = True
@@ -141,7 +165,10 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         if cmd.didFail():
             raise BuildStepFailed(cmd.stderr.strip())
         self.updateSummary()
-        defer.returnValue(cmd.stdout.strip())
+        if kwargs.get("collectStderr", False):
+            defer.returnValue(cmd.stderr.strip())
+        else:
+            defer.returnValue(cmd.stdout.strip())
 
     @defer.inlineCallbacks
     def make_default_bundle(self, executable_files):
@@ -179,40 +206,30 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
 
     @defer.inlineCallbacks
     def split_debug_files(self, executable_files):
-        debug_files = [[], []]
         strip = yield self.get_from_env("STRIP", "strip")
         objcopy = yield self.get_from_env("OBJCOPY", "objcopy")
+
+        split_script = self.SPLIT_DEBUG_SYMBOLS_SCRIPT % (strip,
+                                                          objcopy,
+                                                          " ".join(executable_files))
+        warnings = yield self.send_command(command=["/usr/bin/env", "bash", "-c", split_script],
+                                           logEnviron=False,
+                                           collectStderr=True)
+
+        # Setting up the debug link is not critical and fails for a.out
+        # executable types
+        if warnings:
+            self.addCompleteLog("warnings (%d)" % (warnings.count("\n") + 1), warnings + "\n")
+            self.packaging_results = builder.WARNINGS
+
+        debug_files = [[], []]
         for file_name in executable_files:
             debug_file_name = file_name + ".dbg"
-            yield self.send_command(command=[strip,
-                                             "--only-keep-debug",
-                                             "-o", debug_file_name,
-                                             file_name],
-                                    logEnviron=False)
-            stripped_file_name = file_name + ".st"
-            yield self.send_command(command=[strip,
-                                             "-o", stripped_file_name,
-                                             file_name], logEnviron=False)
-            yield self.send_command(command=["mv", file_name, file_name + ".orig"],
-                                    logEnviron=False)
-            yield self.send_command(command=["mv", stripped_file_name, file_name],
-                                    logEnviron=False)
-            try:
-                yield self.send_command(command=[objcopy,
-                                                 "--add-gnu-debuglink=%s" % debug_file_name,
-                                                 file_name],
-                                        logEnviron=False,
-                                        collectStderr=True)
-            except BuildStepFailed, error:
-                # Setting up the debug link is not critical and fails for
-                # a.out executable types
-                self.addCompleteLog("warnings (1)", error.args[0] + "\n")
-                self.packaging_results = builder.WARNINGS
-
             debug_files[0].append(debug_file_name)
             has_dwp = yield self.pathExists(path.join(self.workdir, file_name + ".dwp"))
             if has_dwp:
                 debug_files[1].append(file_name + ".dwp")
+
         defer.returnValue(debug_files)
 
     @defer.inlineCallbacks
@@ -278,12 +295,9 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
                                     logEnviron=False)
             # The unstripped executables need to be restored after packaging to
             # prevent crashes if the next build does not relink executables
-            for debug_file in debug_files[0]:
-                target_file = debug_file[0:-len(".dbg")]
-                source_file = target_file + ".orig"
-                yield self.send_command(command=["mv", source_file, target_file], logEnviron=False)
-
-            yield self.send_command(command=["rm", "-r", debug_files[0]], logEnviron=False)
+            restore_script = self.RESTORE_UNSTRIPPED_BINARIES_SCRIPT % " ".join(debug_files[0])
+            yield self.send_command(command=["/usr/bin/env", "bash", "-c", restore_script],
+                                    logEnviron=False)
             self.setProperty("debug_package_filename", debug_archive_filename)
 
         defer.returnValue(self.packaging_results)
