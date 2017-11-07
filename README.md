@@ -128,7 +128,7 @@ Worker images will also use this version when you generate images with
     - /path/on/host:/path/in/container
   ```
 
-* It is possible to execuse another command on any running service. To do this,
+* It is possible to execute another command on any running service. To do this,
   run `docker-compose exec <service-name> <command>`. This is particularly
   useful for spawning a shell to perform actions inside the container. If you
   want to run the command as root, add a `-u0` flag after `exec`. If you plan on
@@ -139,19 +139,31 @@ Worker images will also use this version when you generate images with
 * It is possible to start a service with a one-time override of the main
   command. To do this, run `docker-compose run <service-name> <command>`. To
   avoid creating junk containers every time you do this, add the `--rm` flag.
-* After rebuilding your worker image, you may need to run
+* After rebuilding your worker image, you will need to run
   `docker-compose stop <service-name> && docker-compose up <service-name>`
   instead of `docker-compose restart <service-name>` to regenerate the
-  container.
-* If you lost a bunch of disk space, you may use `docker container prune`,
-  `docker image prune`, or `docker system prune` to clean away old things. Note
-  that you may also need to restart Docker, or wait for a reaper to run, to
-  compress the virtual disk image used by Docker. If you are on macOS, you may
-  also need to periodically reset Docker from its Preferences window until
-  [docker/for-mac#371](https://github.com/docker/for-mac/issues/371) is fixed.
+  container. Otherwise, the service will just be restarted using the same files
+  from the previous image.
+* If you lost a bunch of disk space, you may use `docker system prune` to clean
+  away old things. Note that you may also need to restart Docker, or wait for a
+  reaper cron task to run, to compress the virtual disk image used by Docker.
+  Pruning will not remove any explicitly tagged images, nor will it remove
+  images that are depended on by explicitly tagged images.
 * To look at a list of all containers or images on your host machine, including
   those not managed by `docker-compose`, run `docker container ls -a` or
-  `docker image ls -a`. It is normal to see many unnamed images in the image
-  list; these are caches created automatically for each step in a Dockerfile.
+  `docker image ls`. (Using `-a` with `docker image ls` will show intermediate
+  layer images, which is not very helpful.) To look at all the layers of an
+  image and each layer’s size, use `docker history <image-id>`.
+* To find dependent images of another image, try this simple script:
+
+  ```bash
+  #!/usr/bin/env bash
+  for i in $(docker images -q); do
+    docker history $i | grep -q $1 && echo $i
+  done | sort -u
+  ```
+
 * You do not need to regenerate the buildmaster image, or restart its service,
   when making changes to workers. Just restart the worker’s service.
+* After making changes to workers’ `buildbot.cfg`, run
+  `docker-compose restart buildbot`.
