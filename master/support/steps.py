@@ -235,20 +235,23 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
     @defer.inlineCallbacks
     def run(self):
         self.packaging_results = builder.SUCCESS
-        if self.split_debug_package or self.make_target is None:
+        if self.make_target is None:
             executable_files = yield self.send_command(command=["make", "print-executables"],
                                                        collectStdout=True,
                                                        logEnviron=False)
             assert executable_files
             executable_files = executable_files.split(" ")
 
-        if self.split_debug_package:
+        # Make targets may generate different mangled executables which cannot
+        # be touched by the normal binutils, so only do debug splitting for
+        # targets with no special make rule for bundling
+        if self.make_target is None and self.split_debug_package:
             debug_files = yield self.split_debug_files(executable_files)
         else:
             debug_files = None
 
         # TODO: Make Makefile always bundle with `make bundle`, and get rid of
-        # this extra machinery just for CI
+        # this extra machinery just for CI?
         if self.make_target is None:
             package_files = yield self.make_default_bundle(executable_files)
         else:
@@ -256,8 +259,8 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
                 package_files = self.package_files
             else:
                 package_files = [self.make_target + "/"]
-                yield self.runRmdir(path.join(self.workdir, self.make_target))
 
+            yield self.send_command(command=["rm", "-rf", package_files])
             yield self.send_command(command=["make", self.make_target])
 
         package_format = self.package_format
