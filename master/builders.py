@@ -35,8 +35,15 @@ def compute_configure(props):
 
     return command
 
-def is_not_configured(step):
-    return not step.getProperty("already_configured", False)
+class ConfigChecker:
+    configured_once = False
+    def needs_configuration(self, step):
+        if step.getProperty("already_configured", False) is True \
+            and self.configured_once is True:
+            return False
+
+        self.configured_once = True
+        return True
 
 def should_package(step):
     return step.getProperty("got_revision") and \
@@ -106,7 +113,7 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
 
     builder.addStep(steps.Configure(command=compute_configure,
                                     env=compilation_environment,
-                                    doStepIf=is_not_configured))
+                                    doStepIf=ConfigChecker().needs_configuration))
 
     builder.addStep(steps.SetPropertyFromCommand(name="Python (Worker)",
                                                  property="cpu_count",
