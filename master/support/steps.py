@@ -115,7 +115,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         for file in %s; do
             echo $file
             $strip --only-keep-debug -o "$file.dbg" "$file"
-            $strip -o "$file.st" "$file"
+            $strip -g -o "$file.st" "$file"
             mv "$file" "$file.orig"
             mv "$file.st" "$file"
             $objcopy --add-gnu-debuglink="$file.dbg" "$file" || true
