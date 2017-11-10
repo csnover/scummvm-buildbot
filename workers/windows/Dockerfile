@@ -42,6 +42,8 @@ RUN ./compile-libraries-windows.sh libvorbis
 
 COPY ${WORKER_NAME}/library-rules/curl.sh library-rules/
 RUN ./compile-libraries-windows.sh curl
+
+COPY ${WORKER_NAME}/library-rules/libsdl2.sh library-rules/
 RUN ./compile-libraries-windows.sh libsdl2
 
 COPY ${WORKER_NAME}/library-rules/libsdl2-net.sh library-rules/
