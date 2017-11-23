@@ -141,14 +141,23 @@ RUN apt-get update && \
 		openjdk-8-jdk-headless && \
 	rm -rf /var/lib/apt/lists/*
 
-ENV PATH=$PATH:/opt/android/arm/bin \
+# Android's signing key needs to be persisted or else it will be regenerated
+# on every restart of the worker and users will not be able to reinstall new
+# builds on top of old builds
+RUN mkdir -p /buildbot/.android && \
+	chown buildbot:buildbot /buildbot/.android
+
+ENV PATH=$PATH:/opt/android/arm/bin:/opt/android/arm/arm-linux-androideabi/bin \
+	NDK_LOG=1 \
+	NDK_PLATFORMS_ROOT=/opt/android/platforms \
+	NDK_TOOLCHAINS_ROOT=/opt/android/toolchains \
 	ADDR2LINE=arm-linux-androideabi-addr2line \
 	AR=arm-linux-androideabi-ar \
 	AS=arm-linux-androideabi-as \
 	CXX=arm-linux-androideabi-c++ \
 	CXXFILT=arm-linux-androideabi-c++filt \
 	CXXFLAGS="--sysroot=/opt/android/arm/sysroot" \
-	LDFLAGS="--sysroot=/opt/android/arm/sysroot -lgnustl_shared" \
+	LDFLAGS="--sysroot=/opt/android/arm/sysroot" \
 	CC=arm-linux-androideabi-clang \
 	CPP=arm-linux-androideabi-cpp \
 	DWP=arm-linux-androideabi-dwp \
@@ -167,6 +176,10 @@ ENV PATH=$PATH:/opt/android/arm/bin \
 	SIZE=arm-linux-androideabi-size \
 	STRINGS=arm-linux-androideabi-strings \
 	STRIP=arm-linux-androideabi-strip
+
+# ScummVM configure-specific
+ENV ANDROID_NDK=/opt/android/build \
+	ANDROID_SDK=/opt/android/sdk
 
 USER buildbot
 WORKDIR /buildbot

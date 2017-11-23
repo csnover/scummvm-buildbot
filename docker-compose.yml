@@ -127,7 +127,10 @@ services:
     networks:
       - buildbot
 
-    volumes: &defaultVolumes
+    # The volumes list cannot be inherited in at least docker-compose 1.16, so
+    # make sure to check for any reuse of volumes in any of the workers below
+    # if you change these!
+    volumes:
       - ccache:/data/ccache
       - repository:/data/sharedrepo
 
@@ -146,6 +149,12 @@ services:
       <<: *defaultEnv
       CCACHE_DIR: /data/ccache/android
       WORKERNAME: android
+    volumes:
+      # The Android home directory is where Android stores the default signing
+      # keys for the build
+      - android-home:/buildbot/.android
+      - ccache:/data/ccache
+      - repository:/data/sharedrepo:ro
 
   buildbot-apple:
     <<: *defaultWorker
@@ -252,6 +261,7 @@ services:
       WORKERNAME: windows
 
 volumes:
+  android-home:
   ccache:
   database:
   repository:
