@@ -154,7 +154,7 @@ services:
       # keys for the build
       - android-home:/buildbot/.android
       - ccache:/data/ccache
-      - repository:/data/sharedrepo:ro
+      - repository:/data/sharedrepo
 
   buildbot-apple:
     <<: *defaultWorker
