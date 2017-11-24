@@ -1,5 +1,6 @@
 from future.utils import iteritems
 from os import path
+import re
 
 from buildbot.plugins import steps, util
 from .support.steps import CleaningFileUpload, FileExistsSetProperty, MasterCleanSnapshots, Package
@@ -18,6 +19,17 @@ def compute_package_filename(props):
     return "%s.%s" % (props.getProperty("package_name"),
                       props.getProperty("package_archive_format", "tar.xz"))
 
+class BranchType:
+    RELEASE, PRE_RELEASE, DEV = range(3)
+
+def get_branch_type(branch):
+    if re.match(r"v\d+", branch):
+        return BranchType.RELEASE
+    elif branch.startswith("branch-"):
+        return BranchType.PRE_RELEASE
+    else:
+        return BranchType.DEV
+
 @util.renderer
 def compute_configure(props):
     repo_dir = props.getProperty("WORKER_REPO_DIR", ".")
@@ -31,25 +43,39 @@ def compute_configure(props):
 
     command = ["%s/configure" % repo_dir] + args
 
-    if ("--disable-all-engines" not in args
-            and not any(arg.startswith("--enable-engine") for arg in args)
-            and not any(arg.startswith("--disable-engine") for arg in args)):
+    branch_type = get_branch_type(props.getProperty("branch", "master"))
+
+    if branch_type is BranchType.RELEASE:
+        command.append("--enable-release")
+    elif (branch_type is BranchType.PRE_RELEASE
+          and "--disable-optimizations" not in args):
+        command.append("--enable-optimizations")
+    elif ("--disable-all-engines" not in args
+          and not any(arg.startswith("--enable-engine") for arg in args)
+          and not any(arg.startswith("--disable-engine") for arg in args)):
         command.append("--enable-all-engines")
 
     return command
 
 class ConfigChecker:
-    configured_once = False
+    last_branch_type = None
     def needs_configuration(self, step):
+        # Forcing arguments invalidates any previous configuration and also
+        # requires the next run to configure again with the default arguments
         if step.getProperty("force_extra_configure_args", None):
-            self.configured_once = False
+            self.last_branch_type = None
             return True
 
+        # Changing the branch type causes conditional configure argument changes
+        # in compute_configure even if all the files are the same, so must be
+        # checked explicitly
+        branch_type = get_branch_type(step.getProperty("branch", "master"))
+
         if step.getProperty("already_configured", False) is True \
-            and self.configured_once is True:
+            and self.last_branch_type is branch_type:
             return False
 
-        self.configured_once = True
+        self.last_branch_type = branch_type
         return True
 
 def should_package(step):
