@@ -116,11 +116,6 @@ def make_uploader_steps(builder, snapshots_dir, snapshots_url, publish_name, pro
 
 
 def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir, snapshots_url, snapshots_default_max):
-    if snapshots_dir and snapshots_dir[-1] is not "/":
-        snapshots_dir += "/"
-    if snapshots_url and snapshots_url[-1] is not "/":
-        snapshots_url += "/"
-
     builder = util.BuildFactory()
 
     builder.addStep(steps.SetProperties(name="Worker Config File",
@@ -183,6 +178,14 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                                flunkOnFailure=True))
 
     if snapshots_dir is not None and snapshots_url is not None:
+        if snapshots_dir and snapshots_dir[-1] is not "/":
+            snapshots_dir += "/"
+        if snapshots_url and snapshots_url[-1] is not "/":
+            snapshots_url += "/"
+
+        snapshots_dir = "%s%%(prop:branch)s/" % snapshots_dir
+        snapshots_url = "%s%%(prop:branch)s/" % snapshots_url
+
         builder.addStep(steps.SetProperty(name="Computed By %s" % path.basename(__file__),
                                           property="package_name",
                                           value=compute_package_name,
@@ -218,7 +221,7 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                             do_step_if=should_package_debug)
 
         builder.addStep(MasterCleanSnapshots(name="clean old snapshots",
-                                             workdir=snapshots_dir,
+                                             workdir=Interpolate(snapshots_dir),
                                              file_prefix=Interpolate("%(prop:buildername)s-"),
                                              num_to_keep=Property("num_snapshots_to_keep",
                                                                   snapshots_default_max),
