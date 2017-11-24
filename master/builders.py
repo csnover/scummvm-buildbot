@@ -160,6 +160,7 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                                 package_format=Property("package_archive_format"),
                                 make_target=Property("package_make_target"),
                                 split_debug_package=Property("split_debug_package", True),
+                                extra_files=Property("package_extra_files", None),
                                 env=compilation_environment,
                                 doStepIf=should_package))
 

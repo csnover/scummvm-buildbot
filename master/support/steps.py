@@ -138,7 +138,8 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
     description = "packaging"
     descriptionDone = "packaged"
 
-    renderables = ["make_target",
+    renderables = ["extra_files",
+                   "make_target",
                    "package_name",
                    "package_files",
                    "package_format",
@@ -146,7 +147,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
 
     def __init__(self, package_name, package_format="tar.xz",
                  package_files=None, make_target=None,
-                 split_debug_package=False,
+                 split_debug_package=False, extra_files=None,
                  **kwargs):
         kwargs = self.setupShellMixin(kwargs, prohibitArgs=["command"])
         super(Package, self).__init__(**kwargs)
@@ -156,6 +157,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         self.package_files = package_files
         self.make_target = make_target
         self.split_debug_package = split_debug_package
+        self.extra_files = extra_files
         self.packaging_results = builder.SUCCESS
 
     @defer.inlineCallbacks
@@ -171,6 +173,13 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
             defer.returnValue(cmd.stdout.strip())
 
     @defer.inlineCallbacks
+    def copy_extra_files_to(self, target_dir):
+        if self.extra_files:
+            yield self.send_command(command=["cp", "-a", self.extra_files, target_dir],
+                                    logEnviron=False)
+        defer.returnValue(None)
+
+    @defer.inlineCallbacks
     def make_default_bundle(self, executable_files):
         bundle_dir = self.package_name
         dist_files = yield self.send_command(command=["make", "print-dists"],
@@ -184,6 +193,9 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         if dist_files:
             yield self.send_command(command=["cp", "-a", dist_files.split(" "), bundle_dir],
                                     logEnviron=False)
+
+        yield self.copy_extra_files_to(bundle_dir)
+
         defer.returnValue([bundle_dir + "/"])
 
     @defer.inlineCallbacks
@@ -262,6 +274,12 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
 
             yield self.send_command(command=["rm", "-rf", package_files])
             yield self.send_command(command=["make", self.make_target])
+
+            if self.extra_files:
+                if self.package_files:
+                    package_files += self.extra_files
+                else:
+                    yield self.copy_extra_files_to(package_files[0])
 
         package_format = self.package_format
         if package_format is "zip":
