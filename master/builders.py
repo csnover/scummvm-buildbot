@@ -24,9 +24,12 @@ def compute_configure(props):
     if repo_dir[-1] is "/":
         repo_dir = repo_dir[:-1]
 
-    command = ["%s/configure" % repo_dir]
     args = props.getProperty("configure_args", [])
-    command += args
+    extra_args = props.getProperty("force_extra_configure_args", None)
+    if extra_args:
+        args += extra_args.split()
+
+    command = ["%s/configure" % repo_dir] + args
 
     if ("--disable-all-engines" not in args
             and not any(arg.startswith("--enable-engine") for arg in args)
@@ -38,6 +41,10 @@ def compute_configure(props):
 class ConfigChecker:
     configured_once = False
     def needs_configuration(self, step):
+        if step.getProperty("force_extra_configure_args", None):
+            self.configured_once = False
+            return True
+
         if step.getProperty("already_configured", False) is True \
             and self.configured_once is True:
             return False
