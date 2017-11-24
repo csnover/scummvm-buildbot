@@ -68,5 +68,10 @@ RUN apt-get update && \
 COPY --from=compiler /usr/i686-w64-mingw32 /usr/i686-w64-mingw32
 COPY --from=compiler /usr/x86_64-w64-mingw32 /usr/x86_64-w64-mingw32
 
+# Hacky way to force use of static libz
+RUN bash -c 'rm /usr/{x86_64,i686}-w64-mingw32/lib/{libz.dll.a,zlib1.dll}'
+
+ENV LDFLAGS="$LDFLAGS -static-libgcc"
+
 USER buildbot
 WORKDIR /buildbot
