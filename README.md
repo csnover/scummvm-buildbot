@@ -38,6 +38,8 @@ are in `workers` subdirectories.
 
 * Run `docker-compose up -d`
 * Go to http://localhost:28453/ in your browser
+* To control builds from the UI, the login credentials (when in the default
+  development mode) are `user`/`pass`
 
 ## Building images
 
@@ -97,6 +99,32 @@ Worker images will also use this version when you generate images with
   worker image.
 * Add the new worker to the `docker-compose.yml` file, following the pattern
   used by existing workers already in the file.
+
+## Using workers as stand-alone compilers
+
+* Create a `docker-compose.override.yml` which overrides the worker you want to
+  mess with so that you (1) expose the ScummVM code from your host machine, and
+  (2) override the entrypoint so it starts a shell instead of starting the
+  Buildbot worker:
+
+  ```yaml
+  services:
+    buildbot-whatever:
+      volumes:
+        - /host/path/to/scummvm:/data/sharedrepo
+        - /host/path/for/build/output:/buildbot
+      entrypoint: /bin/bash
+  ```
+
+* Start a shell in the worker environment using
+  `docker-compose run --rm buildbot-whatever`
+* Run `/data/sharedrepo/configure`
+* Run `make -j$(nproc)`
+
+If you are stopping and restarting the worker a lot you may also want to bind
+the `/data/ccache` directory of the container somewhere so that the compiler
+cache persists across compiles, since this is where the compiler cache goes by
+default.
 
 ## Tips for creating & debugging workers
 
