@@ -41,6 +41,10 @@ are in `workers` subdirectories.
 
 ## Building images
 
+**You do not need to build images from source if you are only wanting to run a
+worker. Just run `docker-compose up -d buildbot-whatever`, which will fetch the
+prebuilt image for the worker from Docker Hub.**
+
 The buildmaster’s `Dockerfile` is in `master`. Each worker’s `Dockerfile` is in
 its own subdirectory in `workers`.
 
@@ -70,8 +74,7 @@ root. The secret file is a Python module with these keys:
 
 ## Deploying
 
-Run `docker-compose up -d` after building images to stand up the Buildbot
-cluster.
+Run `docker-compose up -d`.
 
 ## Upgrading Buildbot
 
