@@ -109,11 +109,13 @@ RUN ./compile-libraries-android.sh faad2
 COPY ${WORKER_NAME}/library-rules/libmad.sh library-rules/
 RUN ./compile-libraries-android.sh libmad
 
+COPY common/library-rules/libogg.sh library-rules/
 RUN ./compile-libraries-android.sh libogg
 
 COPY ${WORKER_NAME}/library-rules/libtheora.sh library-rules/
 RUN ./compile-libraries-android.sh libtheora
 
+COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-android.sh libvorbis
 
 COPY common/library-rules/flac.sh library-rules/
@@ -122,8 +124,14 @@ RUN ./compile-libraries-android.sh flac
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-android.sh mpeg2dec
 
-RUN ./compile-libraries-android.sh libsdl2
+COPY ${WORKER_NAME}/openssl-clang.patch .
+COPY ${WORKER_NAME}/library-rules/openssl.sh library-rules/
+RUN ./compile-libraries-android.sh openssl
+
+COPY common/library-rules/curl.sh library-rules/
 RUN ./compile-libraries-android.sh curl
+
+RUN ./compile-libraries-android.sh libsdl2
 
 COPY common/library-rules/libsdl2-net.sh library-rules/
 RUN ./compile-libraries-android.sh libsdl2-net

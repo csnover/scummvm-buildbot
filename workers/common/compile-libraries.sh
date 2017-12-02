@@ -72,7 +72,7 @@ do_configure () {
 }
 
 do_make () {
-	make -j$num_cpus install
+	make -j$num_cpus install $@
 }
 
 num_cpus=$(nproc || grep -c ^processor /proc/cpuinfo || echo 1)

@@ -13,6 +13,7 @@ RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 		dpkg-dev \
 		libz-mingw-w64-dev \
 		mingw-w64 \
+		nasm \
 		pkg-config
 
 WORKDIR /tmp/compile
@@ -33,11 +34,13 @@ RUN ./compile-libraries-windows.sh faad2
 COPY common/library-rules/libmad.sh library-rules/
 RUN ./compile-libraries-windows.sh libmad
 
+COPY common/library-rules/libogg.sh library-rules/
 RUN ./compile-libraries-windows.sh libogg
 
 COPY common/library-rules/libtheora.sh library-rules/
 RUN ./compile-libraries-windows.sh libtheora
 
+COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-windows.sh libvorbis
 
 COPY ${WORKER_NAME}/library-rules/curl.sh library-rules/
@@ -49,7 +52,7 @@ RUN ./compile-libraries-windows.sh libsdl2
 COPY ${WORKER_NAME}/library-rules/libsdl2-net.sh library-rules/
 RUN ./compile-libraries-windows.sh libsdl2-net
 
-COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
+COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-windows.sh mpeg2dec
 
 # Using the 64-bit Debian image here just to reduce the number of layers with

@@ -238,6 +238,7 @@ RUN ./compile-libraries-dreamcast.sh faad2
 COPY common/library-rules/libmad.sh library-rules/
 RUN ./compile-libraries-dreamcast.sh libmad
 
+COPY common/library-rules/libogg.sh library-rules/
 RUN ./compile-libraries-dreamcast.sh libogg
 
 COPY common/library-rules/libvorbisidec.sh library-rules/

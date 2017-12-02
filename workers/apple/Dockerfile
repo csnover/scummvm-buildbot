@@ -42,8 +42,7 @@ ENV MACOSX_DEPLOYMENT_TARGET=10.6
 
 # libmpeg2 comes with a ton of dependencies because the osxcross macports script
 # does not understand variants, so is disabled for the moment
-RUN echo 1 | osxcross-macports -s install \
-		curl \
+RUN echo 1 | VERBOSE=1 osxcross-macports -s install \
 		faad2 \
 		flac \
 		freetype \
@@ -57,6 +56,9 @@ RUN echo 1 | osxcross-macports -s install \
 		zlib \
 		&& \
 	osxcross-macports clear-cache
+
+# TODO: Build curl from source, since the one from macports has some symbol
+# lookup issues at runtime
 
 # iOS cross-compiler
 # The neotan URL comes from a Google search for the iOS7.1 SDK
@@ -111,15 +113,20 @@ RUN ./compile-libraries-ios.sh faad2
 COPY common/library-rules/libmad.sh library-rules/
 RUN ./compile-libraries-ios.sh libmad
 
+COPY common/library-rules/libogg.sh library-rules/
 RUN ./compile-libraries-ios.sh libogg
 
 COPY common/library-rules/libtheora.sh library-rules/
 RUN ./compile-libraries-ios.sh libtheora
 
+COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-ios.sh libvorbis
 
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-ios.sh mpeg2dec
+
+COPY ${WORKER_NAME}/library-rules/curl.sh library-rules/
+RUN ./compile-libraries-ios.sh curl
 
 FROM ${DEFAULT_BASE_IMAGE}
 USER root

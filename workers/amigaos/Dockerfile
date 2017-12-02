@@ -59,15 +59,19 @@ RUN ./compile-libraries-amigaos.sh faad2
 COPY common/library-rules/libmad.sh library-rules/
 RUN ./compile-libraries-amigaos.sh libmad
 
+COPY common/library-rules/libogg.sh library-rules/
 RUN ./compile-libraries-amigaos.sh libogg
 
 COPY common/library-rules/libtheora.sh library-rules/
 RUN ./compile-libraries-amigaos.sh libtheora
 
+COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-amigaos.sh libvorbis
 
 COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-amigaos.sh mpeg2dec
+
+# TODO: OpenSSL & cURL
 
 ARG SDL_URL=https://sourceforge.net/projects/sdl2-amigaos4/files/SDL2_SDK_r177.lha/download
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \

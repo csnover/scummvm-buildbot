@@ -70,13 +70,16 @@ RUN ./compile-libraries-freemint.sh faad2
 COPY common/library-rules/libmad.sh library-rules/
 RUN ./compile-libraries-freemint.sh libmad
 
+COPY common/library-rules/libogg.sh library-rules/
 RUN ./compile-libraries-freemint.sh libogg
 
 COPY common/library-rules/libtheora.sh library-rules/
 RUN ./compile-libraries-freemint.sh libtheora
 
+COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-freemint.sh libvorbis
 
+COPY common/library-rules/curl.sh library-rules/
 RUN ./compile-libraries-freemint.sh curl
 
 FROM ${DEFAULT_BASE_IMAGE}

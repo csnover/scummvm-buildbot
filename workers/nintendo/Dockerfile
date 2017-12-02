@@ -36,7 +36,7 @@ RUN ./compile-libraries-nintendo.sh libpng1.6
 COPY common/library-rules/freetype.sh library-rules/
 RUN ./compile-libraries-nintendo.sh freetype
 
-COPY common/library-rules/libjpeg-turbo.sh library-rules/
+COPY common/library-rules/libjpeg-turbo-no-simd.sh library-rules/libjpeg-turbo.sh
 RUN ./compile-libraries-nintendo.sh libjpeg-turbo
 
 COPY common/library-rules/faad2.sh library-rules/
@@ -45,6 +45,7 @@ RUN ./compile-libraries-nintendo.sh faad2
 COPY common/library-rules/libmad.sh library-rules/
 RUN ./compile-libraries-nintendo.sh libmad
 
+COPY common/library-rules/libogg.sh library-rules/
 RUN ./compile-libraries-nintendo.sh libogg
 
 COPY common/library-rules/libtheora.sh library-rules/
@@ -53,6 +54,9 @@ RUN ./compile-libraries-nintendo.sh libtheora
 COPY common/library-rules/libvorbisidec.sh library-rules/
 RUN ./compile-libraries-nintendo.sh libvorbisidec
 
+COPY ${WORKER_NAME}/library-rules/flac.sh library-rules/
+RUN ./compile-libraries-nintendo.sh flac
+
 COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-nintendo.sh mpeg2dec
 
@@ -60,7 +64,6 @@ COPY ${WORKER_NAME}/library-rules/libgxflux.sh library-rules/
 RUN ./compile-libraries-nintendo.sh libgxflux
 
 # glibc       # configure fails, unsupported architecture
-# flac        # build fails, utime/chown missing (from glibc)
 # curl        # configure fails, gethostbyname missing (from glibc)
 # glib2.0     # configure fails, iconv missing (from glibc)
 # fluidsynth  # can't build, needs glib2.0

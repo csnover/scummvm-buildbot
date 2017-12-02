@@ -5,7 +5,9 @@ do_fetch
 # needed to (among other things) avoid compilation failures due to
 # the use of a flag `-fforce-mem`` which was removed in GCC 4.3.
 dh_quilt_patch
+
 touch NEWS AUTHORS ChangeLog
 autoreconf -i
+
 do_configure
-do_make
+make -j$num_cpus install-libLTLIBRARIES install-includeHEADERS

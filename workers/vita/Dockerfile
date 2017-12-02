@@ -57,11 +57,13 @@ RUN ./compile-libraries-vita.sh faad2
 COPY common/library-rules/libmad.sh library-rules/
 RUN ./compile-libraries-vita.sh libmad
 
+COPY common/library-rules/libogg.sh library-rules/
 RUN ./compile-libraries-vita.sh libogg
 
 COPY common/library-rules/libtheora.sh library-rules/
 RUN ./compile-libraries-vita.sh libtheora
 
+COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-vita.sh libvorbis
 
 COPY common/library-rules/mpeg2dec.sh library-rules/
