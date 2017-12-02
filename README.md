@@ -103,9 +103,9 @@ Worker images will also use this version when you generate images with
 ## Using workers as stand-alone compilers
 
 * Create a `docker-compose.override.yml` which overrides the worker you want to
-  mess with so that you (1) expose the ScummVM code from your host machine, and
-  (2) override the entrypoint so it starts a shell instead of starting the
-  Buildbot worker:
+  mess with so that you (1) expose the ScummVM code from your host machine,
+  (2) expose the build directory to your host machine, and (3) override the
+  entrypoint so it starts a shell instead of starting the Buildbot worker:
 
   ```yaml
   services:
