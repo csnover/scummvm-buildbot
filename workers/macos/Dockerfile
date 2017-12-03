@@ -57,34 +57,7 @@ RUN echo 1 | VERBOSE=1 osxcross-macports -s install \
 		&& \
 	osxcross-macports clear-cache
 
-# TODO: Build curl from source, since the one from macports has some symbol
-# lookup issues at runtime
-
-# iOS cross-compiler
-# The neotan URL comes from a Google search for the iOS7.1 SDK
-WORKDIR /tmp
-COPY ${WORKER_NAME}/build-ios.sh.patch build-ios.sh.patch
-RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-	automake \
-	cmake \
-	libtool
-WORKDIR /tmp/compile
-RUN git clone https://github.com/tpoechtrager/cctools-port.git . && \
-	git checkout c1cc75893ed1978174fdcd1b898f81e6535e82d3 && \
-	wget --progress=bar:force:noscroll -O iPhoneOS7.1.sdk.tar.gz \
-		https://github.com/neotan/iPhoneOS7.1.sdk/archive/329870876ab9e956e24de47e92cc3ec75c1cf55a.tar.gz && \
-	cd usage_examples/ios_toolchain && \
-	patch -p1 < /tmp/build-ios.sh.patch && \
-	./build.sh /tmp/compile/iPhoneOS7.1.sdk.tar.gz armv7 && \
-	mv target /opt/ioscross/ && \
-	rm -rf /tmp/compile
-
-RUN mv /opt/ioscross/lib/libtapi.so /opt/ioscross/bin
-ENV LD_LIBRARY_PATH=/opt/ioscross/bin
-
-WORKDIR /tmp/compile
-COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-ios.sh ./
-
+# dpkg-dev is required to retrieve sources from apt
 RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 		> /etc/apt/sources.list.d/debsrc.list && \
 	apt-get update && \
@@ -92,48 +65,19 @@ RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 		dpkg-dev \
 		pkg-config
 
-# Library rules are copied separately along with their corresponding library
-# so that changes or additions to individual library scripts don't invalidate
-# every single library layer
-COPY common/library-rules/zlib.sh library-rules/
-RUN ./compile-libraries-ios.sh zlib
+ENV PATH=$PATH:/opt/osxcross/bin:/opt/osxcross/macports/pkgs/opt/local/bin
 
-COPY common/library-rules/libpng1.6.sh library-rules/
-RUN ./compile-libraries-ios.sh libpng1.6
+WORKDIR /tmp/compile
+COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-macos.sh ./
 
-COPY common/library-rules/freetype.sh library-rules/
-RUN ./compile-libraries-ios.sh freetype
-
-COPY common/library-rules/libjpeg-turbo.sh library-rules/
-RUN ./compile-libraries-ios.sh libjpeg-turbo
-
-COPY common/library-rules/faad2.sh library-rules/
-RUN ./compile-libraries-ios.sh faad2
-
-COPY common/library-rules/libmad.sh library-rules/
-RUN ./compile-libraries-ios.sh libmad
-
-COPY common/library-rules/libogg.sh library-rules/
-RUN ./compile-libraries-ios.sh libogg
-
-COPY common/library-rules/libtheora.sh library-rules/
-RUN ./compile-libraries-ios.sh libtheora
-
-COPY common/library-rules/libvorbis.sh library-rules/
-RUN ./compile-libraries-ios.sh libvorbis
-
-COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
-RUN ./compile-libraries-ios.sh mpeg2dec
-
-COPY ${WORKER_NAME}/library-rules/curl.sh library-rules/
-RUN ./compile-libraries-ios.sh curl
+COPY common/library-rules/mpeg2dec.sh library-rules/
+RUN ./compile-libraries-macos.sh mpeg2dec
 
 FROM ${DEFAULT_BASE_IMAGE}
 USER root
 ARG WORKER_NAME
 
 COPY --from=compilers /opt/osxcross /opt/osxcross
-COPY --from=compilers /opt/ioscross /opt/ioscross
 
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -145,10 +89,48 @@ RUN apt-get update && \
 
 ENV MACOSX_DEPLOYMENT_TARGET=10.6
 ENV OSXCROSS_MP_INC=1
-ENV LD_LIBRARY_PATH=/opt/ioscross/bin:$LD_LIBRARY_PATH
 
 # Required for bundling with USE_DOCKTILEPLUGIN
 COPY ${WORKER_NAME}/arc /usr/lib/llvm-3.8/lib/arc
+
+ARG SDK_VERSION=10.8
+
+ENV PATH=$PATH:/opt/osxcross/bin:/opt/osxcross/macports/pkgs/opt/local/bin:/opt/osxcross/SDK/MacOSX${SDK_VERSION}.sdk/usr/bin \
+	OBJECTDUMP=x86_64-apple-darwin12-ObjectDump \
+	AR=x86_64-apple-darwin12-ar \
+	AS=x86_64-apple-darwin12-as \
+	BITCODE_STRIP=x86_64-apple-darwin12-bitcode_strip \
+	CXX=x86_64-apple-darwin12-c++ \
+	CC=x86_64-apple-darwin12-cc \
+	CHECK_DYLIB=x86_64-apple-darwin12-check_dylib \
+	CHECKSYMS=x86_64-apple-darwin12-checksyms \
+	CMPDYLIB=x86_64-apple-darwin12-cmpdylib \
+	CODESIGN_ALLOCATE=x86_64-apple-darwin12-codesign_allocate \
+	DSYMUTIL=x86_64-apple-darwin12-dsymutil \
+	INDR=x86_64-apple-darwin12-indr \
+	INOUT=x86_64-apple-darwin12-inout \
+	INSTALL_NAME_TOOL=x86_64-apple-darwin12-install_name_tool \
+	LD=x86_64-apple-darwin12-ld \
+	LIBTOOL=x86_64-apple-darwin12-libtool \
+	LIPO=x86_64-apple-darwin12-lipo \
+	MACHOCHECK=x86_64-apple-darwin12-machocheck \
+	NM=x86_64-apple-darwin12-nm \
+	NMEDIT=x86_64-apple-darwin12-nmedit \
+	OTOOL=x86_64-apple-darwin12-otool \
+	PAGESTUFF=x86_64-apple-darwin12-pagestuff \
+	PKG_CONFIG=x86_64-apple-darwin12-pkg-config \
+	PKG_CONFIG_PATH=/opt/osxcross/macports/pkgs/opt/local/lib/pkgconfig \
+	RANLIB=x86_64-apple-darwin12-ranlib \
+	REDO_PREBINDING=x86_64-apple-darwin12-redo_prebinding \
+	SEG_ADDR_TABLE=x86_64-apple-darwin12-seg_addr_table \
+	SEG_HACK=x86_64-apple-darwin12-seg_hack \
+	SEGEDIT=x86_64-apple-darwin12-segedit \
+	SIZE=x86_64-apple-darwin12-size \
+	STRINGS=x86_64-apple-darwin12-strings \
+	STRIP=x86_64-apple-darwin12-strip \
+	SW_VERS=x86_64-apple-darwin12-sw_vers \
+	UNWINDDUMP=x86_64-apple-darwin12-unwinddump \
+	WRAPPER=x86_64-apple-darwin12-wrapper
 
 USER buildbot
 WORKDIR /buildbot

@@ -156,14 +156,6 @@ services:
       - ccache:/data/ccache
       - repository:/data/sharedrepo
 
-  buildbot-apple:
-    <<: *defaultWorker
-    image: scummvm/buildbot-apple:latest
-    environment:
-      <<: *defaultEnv
-      CCACHE_DIR: /data/ccache/apple
-      WORKERNAME: apple
-
   buildbot-debian-x86:
     <<: *defaultWorker
     image: scummvm/buildbot-debian-x86:latest
@@ -203,6 +195,14 @@ services:
       <<: *defaultEnv
       CCACHE_DIR: /data/ccache/haiku
       WORKERNAME: haiku
+
+  buildbot-macos:
+    <<: *defaultWorker
+    image: scummvm/buildbot-macos:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/macos
+      WORKERNAME: macos
 
   buildbot-nintendo:
     <<: *defaultWorker
