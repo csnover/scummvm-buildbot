@@ -13,6 +13,14 @@ usage () {
 	echo "--no-master: Build only the specified worker images"
 }
 
+cleanup () {
+	if [ -f .dockerignore.ios ]; then
+		mv .dockerignore.ios .dockerignore
+	fi
+}
+
+trap cleanup EXIT
+
 build_worker () {
 	local worker_dir=$1
 	local tag=${2:-latest}
@@ -20,6 +28,11 @@ build_worker () {
 	local os_image=${4:-$default_os_image}
 	local worker_name=$(basename $worker_dir)
 	echo "Building worker $worker_name"
+
+	if [ "$worker_name" == "ios" ]; then
+		sed -e '/iPhoneOS7\.1\.sdk\.tar/ s/^/#/g' -i.ios .dockerignore
+	fi
+
 	docker build -t "scummvm/buildbot-$worker_name:$tag" \
 		-f "$worker_dir/Dockerfile" \
 		--build-arg "BUILDBOT_VERSION=$buildbot_version" \
@@ -29,6 +42,10 @@ build_worker () {
 		--build-arg "DEFAULT_32_BIT_OS_IMAGE=$default_32_bit_os_image" \
 		--build-arg "WORKER_NAME=$worker_name" \
 		.
+
+	if [ "$worker_name" == "ios" ]; then
+		mv .dockerignore.ios .dockerignore
+	fi
 }
 
 if [ $# -gt 0 -a "$1" == "--help" ]; then

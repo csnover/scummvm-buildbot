@@ -2,3 +2,4 @@
 docker-compose.override.yml
 secrets.cfg
 .DS_Store
+workers/ios/iPhoneOS7.1.sdk*

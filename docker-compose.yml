@@ -196,6 +196,14 @@ services:
       CCACHE_DIR: /data/ccache/haiku
       WORKERNAME: haiku
 
+  buildbot-ios:
+    <<: *defaultWorker
+    image: scummvm/buildbot-ios:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/ios
+      WORKERNAME: ios
+
   buildbot-macos:
     <<: *defaultWorker
     image: scummvm/buildbot-macos:latest

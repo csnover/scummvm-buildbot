@@ -1,0 +1,5 @@
+# The iOS SDK is enormous, so only send it to the Docker daemon when we
+# absolutely must (during iOS builds). Some hackiness in build-images.sh makes
+# this happen.
+ios/iPhoneOS7.1.sdk
+ios/iPhoneOS7.1.sdk.tar.gz
