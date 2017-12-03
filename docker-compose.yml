@@ -236,14 +236,6 @@ services:
       CCACHE_DIR: /data/ccache/raspberrypi
       WORKERNAME: raspberrypi
 
-  buildbot-samsungtv:
-    <<: *defaultWorker
-    image: scummvm/buildbot-samsungtv:latest
-    environment:
-      <<: *defaultEnv
-      CCACHE_DIR: /data/ccache/samsungtv
-      WORKERNAME: samsungtv
-
   buildbot-vita:
     <<: *defaultWorker
     image: scummvm/buildbot-vita:latest
