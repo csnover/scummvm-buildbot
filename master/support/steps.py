@@ -114,7 +114,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         objcopy=%s
         for file in %s; do
             echo $file
-            $strip --only-keep-debug -o "$file.dbg" "$file"
+            $strip --only-keep-debug -o "$file.dbg" "$file" || continue
             $strip -g -o "$file.st" "$file"
             mv "$file" "$file.orig"
             mv "$file.st" "$file"
@@ -127,8 +127,21 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         for debug_file in %s; do
             orig_file=${debug_file%%.dbg}
             echo $orig_file
-            mv "$orig_file.orig" "$orig_file"
-            rm "$debug_file"
+            if [ -f "$orig_file.orig" ]; then
+                mv "$orig_file.orig" "$orig_file"
+            fi
+            if [ -f "$debug_file" ]; then
+                rm "$debug_file"
+            fi
+        done
+    """
+
+    FIND_DEBUG_FILES = """
+        set -e
+        for debug_file in %s; do
+            if [ -f "$debug_file" ]; then
+                echo "$debug_file"
+            fi
         done
     """
 
@@ -229,7 +242,10 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
                                            collectStderr=True)
 
         # Setting up the debug link is not critical and fails for a.out
-        # executable types
+        # executable types; stripping debug symbols is also considered not
+        # critical since sometimes we package a package blob instead of an
+        # original executable (e.g. the PSP EBOOT.PBP) which strip cannot do
+        # anything to, and this is fine
         if warnings:
             self.addCompleteLog("warnings (%d)" % (warnings.count("\n") + 1), warnings + "\n")
             self.packaging_results = builder.WARNINGS
@@ -241,6 +257,16 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
             has_dwp = yield self.pathExists(path.join(self.workdir, file_name + ".dwp"))
             if has_dwp:
                 debug_files[1].append(file_name + ".dwp")
+
+        find_debug_files = self.FIND_DEBUG_FILES % " ".join(debug_files[0])
+        final_files = yield self.send_command(command=["/usr/bin/env", "bash", "-c",
+                                                       find_debug_files],
+                                              logEnviron=False,
+                                              collectStdout=True)
+        if final_files:
+            debug_files[0] = final_files.split("\n")
+        else:
+            debug_files = []
 
         defer.returnValue(debug_files)
 
