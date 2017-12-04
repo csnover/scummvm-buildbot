@@ -3,6 +3,7 @@ from os import path
 import re
 
 from buildbot.plugins import steps, util
+from .support.locks import HostLock
 from .support.steps import CleaningFileUpload, FileExistsSetProperty, MasterCleanSnapshots, Package
 Interpolate = util.Interpolate
 Property = util.Property
@@ -234,15 +235,10 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                               collapseRequests=True,
                               factory=builder,
                               nextBuild=pick_next_build,
-                              locks=[lock.access("exclusive")])
+                              locks=[lock.access("counting")])
 
 def make_builders(repo_url, worker_configs, snapshots_dir=None, snapshots_url=None, snapshots_default_max=2):
-    # TODO: Use one lock per container host; for now we have only one container
-    # host so we just use a single lock. One lock per worker is not good enough
-    # since many workers may run on a single container host and this should block
-    # on host container resources.
-    # "build1" is the name used for the container host in docker-compose.yml
-    master_lock = util.MasterLock("build1")
+    master_lock = HostLock("builds")
 
     builders = []
     for (worker_name, worker_config) in iteritems(worker_configs):
