@@ -52,7 +52,7 @@ RUN ./compile-libraries-windows.sh libsdl2
 COPY ${WORKER_NAME}/library-rules/libsdl2-net.sh library-rules/
 RUN ./compile-libraries-windows.sh libsdl2-net
 
-COPY common/library-rules/mpeg2dec.sh library-rules/
+COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-windows.sh mpeg2dec
 
 # Using the 64-bit Debian image here just to reduce the number of layers with
