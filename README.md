@@ -91,10 +91,12 @@ Worker images will also use this version when you generate images with
 * Copy template files from `workers/_template` to the new worker’s subdirectory.
 * Edit the copied files appropriately. The `Dockerfile` should install the
   cross-compiler and ScummVM dependencies for the target platform, the Buildbot
-  worker and its dependencies, and configure the environment’s `PATH`
-  appropriately for the cross-compiler. Please take care to delete any temporary
-  files and caches generated during package installation or toolchain building
-  at the end of each `RUN` command.
+  worker and its dependencies, and configure environment variables appropriately
+  for the cross-compiler. Libraries should be built using the standard
+  `compile-libraries.sh` system. Please take care to follow
+  [Dockerfile best practices](https://docs.docker.com/engine/userguide/eng-image/dockerfile_best-practices/)
+  and delete any temporary files and caches generated during package
+  installation or toolchain building at the end of each `RUN` command.
 * Run `build-images.sh <worker name>` to rebuild the master image and the new
   worker image.
 * Add the new worker to the `docker-compose.yml` file, following the pattern
@@ -121,7 +123,7 @@ Worker images will also use this version when you generate images with
 * Run `/data/sharedrepo/configure`
 * Run `make -j$(nproc)`
 
-If you are stopping and restarting the worker a lot you may also want to bind
+If you are stopping or re-upping the worker a lot you may also want to bind
 the `/data/ccache` directory of the container somewhere so that the compiler
 cache persists across compiles, since this is where the compiler cache goes by
 default.
@@ -148,7 +150,7 @@ default.
   containers’ main processes to the console so they can be viewed. It will also
   run the containers only until you hit Ctrl+C. Otherwise, you can view the logs
   for running services at any time with `docker-compose logs`.
-* Every time a Docker container is stopped and restarted, any information not
+* Every time a Docker container is brought up again, any information not
   stored in a volume will be destroyed. So, if you want to inspect a directory
   of a container, consider binding it to your host filesystem by adding extra
   `volumes` to the worker’s configuration in `docker-compose.yml`:
@@ -170,16 +172,16 @@ default.
 * It is possible to start a service with a one-time override of the main
   command. To do this, run `docker-compose run <service-name> <command>`. To
   avoid creating junk containers every time you do this, add the `--rm` flag.
-* After rebuilding your worker image, you will need to run
-  `docker-compose stop <service-name> && docker-compose up <service-name>`
-  instead of `docker-compose restart <service-name>` to regenerate the
-  container. Otherwise, the service will just be restarted using the same files
-  from the previous image.
+* After rebuilding your worker image, re-run
+  `docker-compose up -d <service-name>` instead of
+  `docker-compose restart <service-name>` to actually regenerate the container.
+  Otherwise, the service will just be restarted using the same files from the
+  previous image.
 * If you lost a bunch of disk space, you may use `docker system prune` to clean
   away old things. Note that you may also need to restart Docker, or wait for a
   reaper cron task to run, to compress the virtual disk image used by Docker.
-  Pruning will not remove any explicitly tagged images, nor will it remove
-  images that are depended on by explicitly tagged images.
+  (Pruning will not remove any explicitly tagged images, nor will it remove
+  images that are depended on by explicitly tagged images.)
 * To look at a list of all containers or images on your host machine, including
   those not managed by `docker-compose`, run `docker container ls -a` or
   `docker image ls`. (Using `-a` with `docker image ls` will show intermediate
@@ -195,6 +197,6 @@ default.
   ```
 
 * You do not need to regenerate the buildmaster image, or restart its service,
-  when making changes to workers. Just restart the worker’s service.
+  when making changes to workers. Just re-up the worker’s service.
 * After making changes to workers’ `buildbot.cfg`, run
   `docker-compose restart buildbot`.
