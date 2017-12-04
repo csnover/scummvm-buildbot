@@ -114,6 +114,28 @@ RUN apt-get update && \
 	rm -rf /var/lib/apt/lists/*
 
 COPY --from=compiler /usr/ppc-amigaos /usr/ppc-amigaos
-ENV PATH=$PATH:/usr/ppc-amigaos/bin
+ENV PATH=$PATH:/usr/ppc-amigaos/bin \
+	ADDR2LINE=ppc-amigaos-addr2line \
+	AR=ppc-amigaos-ar \
+	AS=ppc-amigaos-as \
+	C++=ppc-amigaos-c++ \
+	C++FILT=ppc-amigaos-c++filt \
+	CPP=ppc-amigaos-cpp \
+	ELFEDIT=ppc-amigaos-elfedit \
+	G++=ppc-amigaos-g++ \
+	GCC=ppc-amigaos-gcc \
+	GCOV=ppc-amigaos-gcov \
+	GCOV_TOOL=ppc-amigaos-gcov-tool \
+	GPROF=ppc-amigaos-gprof \
+	LD=ppc-amigaos-ld \
+	NM=ppc-amigaos-nm \
+	OBJCOPY=ppc-amigaos-objcopy \
+	OBJDUMP=ppc-amigaos-objdump \
+	RANLIB=ppc-amigaos-ranlib \
+	READELF=ppc-amigaos-readelf \
+	SIZE=ppc-amigaos-size \
+	STRINGS=ppc-amigaos-strings \
+	STRIP=ppc-amigaos-strip
+
 USER buildbot
 WORKDIR /buildbot
