@@ -7,6 +7,7 @@ ARG WORKER_NAME
 WORKDIR /tmp/compile
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		autoconf2.59 \
 		ca-certificates \
 		dirmngr \
 		gnupg \
@@ -33,12 +34,12 @@ COPY ${WORKER_NAME}/mintlib/debian debian
 RUN dpkg-buildpackage -us -uc
 RUN dpkg --install ../mintlib-m68k-atari-mint_0.60.1.Git-*.deb
 
-WORKDIR /tmp/compile/gcc-m68k-atari-mint-7.1.0-mint
+WORKDIR /tmp/compile/gcc-m68k-atari-mint-7.2.0-mint
 RUN wget --progress=bar:force:noscroll -O gcc-7_2_0.tar.gz \
 	https://github.com/freemint/m68k-atari-mint-gcc/archive/4984a17029e16071cdf7c0ea0a51ce47c8c11518.tar.gz
 COPY ${WORKER_NAME}/gcc/debian debian
 RUN dpkg-buildpackage -us -uc
-RUN dpkg --install ../gcc-m68k-atari-mint_7.1.0-mint-*.deb
+RUN dpkg --install ../gcc-m68k-atari-mint_7.2.0-mint-*.deb
 
 WORKDIR /tmp/compile
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -86,7 +87,7 @@ FROM ${DEFAULT_BASE_IMAGE}
 USER root
 WORKDIR /tmp
 COPY --from=compiler \
-	/tmp/compile/gcc-m68k-atari-mint_7.1.0-mint-20171102+nmu1_amd64.deb \
+	/tmp/compile/gcc-m68k-atari-mint_7.2.0-mint-20171102+nmu1_amd64.deb \
 	/tmp/compile/mintlib-m68k-atari-mint_0.60.1.Git-20171102+nmu1_amd64.deb \
 	/tmp/
 RUN apt-get update && \
@@ -107,7 +108,7 @@ RUN apt-get update && \
 		libmpfr4 \
 		&& \
 	dpkg --install mintlib-m68k-atari-mint_0.60.1.Git-20171102+nmu1_amd64.deb && \
-	dpkg --install gcc-m68k-atari-mint_7.1.0-mint-20171102+nmu1_amd64.deb && \
+	dpkg --install gcc-m68k-atari-mint_7.2.0-mint-20171102+nmu1_amd64.deb && \
 	rm *.deb && \
 	DEBIAN_FRONTEND=noninteractive apt-get remove -y dirmngr gnupg && \
 	DEBIAN_FRONTEND=noninteractive apt-get -y autoremove && \

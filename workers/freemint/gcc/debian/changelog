@@ -1,6 +1,6 @@
-gcc-m68k-atari-mint (7.1.0-mint-20171102+nmu1) UNRELEASED; urgency=medium
+gcc-m68k-atari-mint (7.2.0-mint-20171102+nmu1) UNRELEASED; urgency=medium
 
-  * Upgraded to version 7.1.0.
+  * Upgraded to version 7.2.0.
 
  -- ScummVM Team <admin@scummvm.org>  Thu, 2 Nov 2017 00:00:00 +0000
 
