@@ -25,6 +25,7 @@ def make_www(port, auth_role, secrets, is_dev_env):
                 "strict": True
             }
         },
+        "logfileName": None,
         "plugins": {
             "console_view": True,
             "grid_view": True,
