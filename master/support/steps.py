@@ -50,16 +50,17 @@ class MasterCleanSnapshots(BuildStep):
 
     renderables = ["file_prefix", "num_to_keep", "secondary_file_suffix"]
 
-    def __init__(self, file_prefix, num_to_keep, secondary_file_suffix=None, **kwargs):
+    def __init__(self, file_prefix, num_to_keep, file_extensions, secondary_file_suffix=None, **kwargs):
         super(MasterCleanSnapshots, self).__init__(**kwargs)
         self.file_prefix = file_prefix
         self.num_to_keep = num_to_keep
+        self.file_extensions = file_extensions
         self.secondary_file_suffix = secondary_file_suffix
 
     def add_to_matches(self, matches, created_at, file_path):
         # TODO: This is all a pretty dumb way of doing this
 
-        base_name = re.sub(r"\.(?:tar(?:\.[xg]z)?|zip)$", "", file_path)
+        base_name = re.sub(self.file_extensions, "", file_path)
         if base_name.endswith(self.secondary_file_suffix):
             prefix = base_name.rpartition(self.secondary_file_suffix)[0]
             try:

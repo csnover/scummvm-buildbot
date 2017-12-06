@@ -228,6 +228,7 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                                              num_to_keep=Property("num_snapshots_to_keep",
                                                                   snapshots_default_max),
                                              secondary_file_suffix="-debug-symbols",
+                                             file_extensions=r"\.(?:tar(?:\.[xg]z)?|[a-z]{3,4})$",
                                              doStepIf=should_package,
                                              hideStepIf=True))
 
