@@ -198,6 +198,7 @@ def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir
                                 make_target=Property("package_make_target"),
                                 split_debug_package=Property("split_debug_package", True),
                                 extra_files=Property("package_extra_files", None),
+                                package_script=Interpolate(config.get("package_script", "")),
                                 env=compilation_environment,
                                 doStepIf=should_package))
 

@@ -55,16 +55,42 @@ RUN ./compile-libraries-windows.sh libsdl2-net
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-windows.sh mpeg2dec
 
+ARG SPARKLE_VERSION=0.5.7
+
+WORKDIR /tmp
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		ca-certificates \
+		unzip \
+		wget && \
+	wget --progress=bar:force:noscroll -O sparkle.zip \
+		https://github.com/vslavik/winsparkle/releases/download/v${SPARKLE_VERSION}/WinSparkle-${SPARKLE_VERSION}.zip && \
+	unzip sparkle.zip && \
+	cd WinSparkle-${SPARKLE_VERSION} && \
+	cp -a include/* /usr/i686-w64-mingw32/include && \
+	cp -a include/* /usr/x86_64-w64-mingw32/include && \
+	mv Release/* /usr/i686-w64-mingw32/lib && \
+	mv x64/Release/* /usr/x86_64-w64-mingw32/lib && \
+	cd .. && \
+	rm -r WinSparkle-${SPARKLE_VERSION} sparkle.zip
+
 # Using the 64-bit Debian image here just to reduce the number of layers with
 # redundant data in them; DEFAULT_BASE_IMAGE would work fine too
 FROM scummvm/buildbot-debian-x86_64:latest
 USER root
 
-RUN apt-get update && \
+# i386 arch is for wine32
+RUN dpkg --add-architecture i386 && \
+	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		dos2unix \
 		libz-mingw-w64-dev \
 		mingw-w64 \
-		zip \
+# For Inno Setup
+		wget \
+		wine \
+		wine32 \
+		xauth \
+		xvfb \
 		&& \
 	rm -rf /var/lib/apt/lists/*
 
@@ -73,6 +99,23 @@ COPY --from=compiler /usr/x86_64-w64-mingw32 /usr/x86_64-w64-mingw32
 
 # Hacky way to force use of static libz
 RUN bash -c 'rm /usr/{x86_64,i686}-w64-mingw32/lib/{libz.dll.a,zlib1.dll}'
+
+ARG INNOSETUP_VERSION=5.5.9
+
+# Wine apparently refuses to do anything if the Wine directory is not owned by
+# the current user, so we have to switch and do everything from the Buildbot
+# user
+USER buildbot
+# Using the Netherlands URL because the US one is not HTTPS
+RUN wget --progress=bar:force:noscroll -O innosetupsetup.exe \
+		https://mlaan2.home.xs4all.nl/ispack/innosetup-${INNOSETUP_VERSION}-unicode.exe && \
+	if ! HOME=/buildbot xvfb-run wine innosetupsetup.exe /SP- /VERYSILENT /SUPPRESSMSGBOXES /LOG=install.log; then \
+		cat install.log ; exit 1 ; \
+	fi && \
+	rm innosetupsetup.exe install.log && \
+	wget --progress=bar:force:noscroll \
+		-O "/buildbot/.wine/drive_c/Program Files/Inno Setup 5/Languages/Swedish.isl" \
+		https://raw.github.com/jrsoftware/issrc/master/Files/Languages/Unofficial/Swedish.isl
 
 ENV LDFLAGS="$LDFLAGS -static-libgcc"
 

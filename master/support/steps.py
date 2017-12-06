@@ -156,11 +156,13 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
                    "package_name",
                    "package_files",
                    "package_format",
+                   "package_script",
                    "split_debug_package"]
 
     def __init__(self, package_name, package_format="tar.xz",
                  package_files=None, make_target=None,
                  split_debug_package=False, extra_files=None,
+                 package_script=None,
                  **kwargs):
         kwargs = self.setupShellMixin(kwargs, prohibitArgs=["command"])
         super(Package, self).__init__(**kwargs)
@@ -171,6 +173,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         self.make_target = make_target
         self.split_debug_package = split_debug_package
         self.extra_files = extra_files
+        self.package_script = package_script
         self.packaging_results = builder.SUCCESS
 
     @defer.inlineCallbacks
@@ -273,7 +276,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
     @defer.inlineCallbacks
     def run(self):
         self.packaging_results = builder.SUCCESS
-        if self.make_target is None:
+        if not self.make_target:
             executable_files = yield self.send_command(command=["make", "print-executables"],
                                                        collectStdout=True,
                                                        logEnviron=False)
@@ -283,20 +286,23 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
         # Make targets may generate different mangled executables which cannot
         # be touched by the normal binutils, so only do debug splitting for
         # targets with no special make rule for bundling
-        if self.make_target is None and self.split_debug_package:
+        if not self.make_target and self.split_debug_package:
             debug_files = yield self.split_debug_files(executable_files)
         else:
             debug_files = None
 
         # TODO: Make Makefile always bundle with `make bundle`, and get rid of
         # this extra machinery just for CI?
-        if self.make_target is None:
+        if not self.make_target:
             package_files = yield self.make_default_bundle(executable_files)
         else:
             if self.package_files:
                 package_files = self.package_files
             else:
-                package_files = [self.make_target + "/"]
+                if isinstance(self.make_target, basestring):
+                    package_files = [self.make_target + "/"]
+                else:
+                    package_files = [self.make_target[0] + "/"]
 
             yield self.send_command(command=["rm", "-rf", package_files])
             yield self.send_command(command=["make", self.make_target])
@@ -307,29 +313,36 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
                 else:
                     yield self.copy_extra_files_to(package_files[0])
 
-        package_format = self.package_format
-        if package_format is "zip":
-            archiver = ["zip", "-8r"]
-            compression_options = {}
+        if self.package_script:
+            yield self.send_command(command=["/usr/bin/env", "bash", "-c",
+                                             "set -eo pipefail\n" + self.package_script],
+                                    logEnviron=False)
+            archive_filename = "%s.%s" % (self.package_name, self.package_format)
         else:
-            if package_format is "tar.gz":
-                compression_flag = "j"
-                compression_options = {"GZIP": "-9"}
-            elif package_format is "tar":
-                compression_flag = ""
+            package_format = self.package_format
+            if package_format is "zip":
+                archiver = ["zip", "-8r"]
                 compression_options = {}
             else:
-                compression_flag = "J"
-                compression_options = {"XZ_OPT": "-2"}
-                package_format = "tar.xz"
+                if package_format is "tar.gz":
+                    compression_flag = "j"
+                    compression_options = {"GZIP": "-9"}
+                elif package_format is "tar":
+                    compression_flag = ""
+                    compression_options = {}
+                else:
+                    compression_flag = "J"
+                    compression_options = {"XZ_OPT": "-2"}
+                    package_format = "tar.xz"
 
-            archiver = ["tar", "-cv%sf" % compression_flag]
+                archiver = ["tar", "-cv%sf" % compression_flag]
 
-        archive_filename = "%s.%s" % (self.package_name, package_format)
-        archiver.append(archive_filename)
-        archiver += package_files
+            archive_filename = "%s.%s" % (self.package_name, package_format)
+            archiver.append(archive_filename)
+            archiver += package_files
 
-        yield self.send_command(command=archiver, env=compression_options, logEnviron=False)
+            yield self.send_command(command=archiver, env=compression_options, logEnviron=False)
+
         yield self.send_command(command=["rm", "-r", package_files], logEnviron=False)
         self.setProperty("package_filename", archive_filename)
 
