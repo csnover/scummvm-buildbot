@@ -231,6 +231,14 @@ services:
       CCACHE_DIR: /data/ccache/nintendo
       WORKERNAME: nintendo
 
+  buildbot-maemo:
+    <<: *defaultWorker
+    image: scummvm/buildbot-maemo:latest
+    environment:
+      <<: *defaultEnv
+      CCACHE_DIR: /data/ccache/maemo
+      WORKERNAME: maemo
+
   buildbot-psp:
     <<: *defaultWorker
     image: scummvm/buildbot-psp:latest
