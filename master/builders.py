@@ -108,13 +108,13 @@ def make_uploader_steps(builder, snapshots_dir, snapshots_url, publish_name, pro
                                        masterdest=target_path,
                                        url=target_url,
                                        clean=True,
+                                       mode=0644,
                                        doStepIf=do_step_if))
     builder.addStep(steps.MasterShellCommand(name="update latest %s" % publish_name,
                                              command=["ln", "-sf", target_path, target_link],
                                              logEnviron=False,
                                              hideStepIf=True,
                                              doStepIf=do_step_if))
-
 
 def make_builder_config(repo_url, name, worker_name, config, lock, snapshots_dir, snapshots_url, snapshots_default_max):
     builder = util.BuildFactory()
