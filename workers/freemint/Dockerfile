@@ -80,6 +80,9 @@ RUN ./compile-libraries-freemint.sh libtheora
 COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-freemint.sh libvorbis
 
+COPY common/library-rules/flac.sh library-rules/
+RUN ./compile-libraries-freemint.sh flac
+
 COPY common/library-rules/curl.sh library-rules/
 RUN ./compile-libraries-freemint.sh curl
 

@@ -66,6 +66,9 @@ RUN ./compile-libraries-vita.sh libtheora
 COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-vita.sh libvorbis
 
+COPY common/library-rules/flac-no-memory-h.sh library-rules/flac.sh
+RUN ./compile-libraries-vita.sh flac
+
 COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-vita.sh mpeg2dec
 

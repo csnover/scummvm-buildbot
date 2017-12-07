@@ -43,6 +43,9 @@ RUN ./compile-libraries-windows.sh libtheora
 COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-windows.sh libvorbis
 
+COPY common/library-rules/flac.sh library-rules/
+RUN ./compile-libraries-windows.sh flac
+
 COPY ${WORKER_NAME}/library-rules/curl.sh library-rules/
 RUN ./compile-libraries-windows.sh curl
 

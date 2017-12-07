@@ -77,6 +77,9 @@ RUN ./compile-libraries-ios.sh libtheora
 COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-ios.sh libvorbis
 
+COPY common/library-rules/flac.sh library-rules/
+RUN ./compile-libraries-ios.sh flac
+
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-ios.sh mpeg2dec
 
