@@ -37,7 +37,7 @@ are in `workers` subdirectories.
   ```
 
 * Run `docker-compose up -d`
-* Go to http://localhost:28453/ in your browser
+* Go to http://localhost/ in your browser
 * To control builds from the UI, the login credentials (when in the default
   development mode) are `user`/`pass`
 
@@ -104,24 +104,25 @@ Worker images will also use this version when you generate images with
 
 ## Using workers as stand-alone compilers
 
-* Create a `docker-compose.override.yml` which overrides the worker you want to
-  mess with so that you (1) expose the ScummVM code from your host machine,
-  (2) expose the build directory to your host machine, and (3) override the
-  entrypoint so it starts a shell instead of starting the Buildbot worker:
+One of the easiest ways to use one of the Buildbot workers as a stand-alone
+compiler is to create a `docker-compose.override.yml` file which overrides
+properties of the worker you want to mess with so that you (1) expose the
+ScummVM code from your host machine, (2) expose the build directory to your host
+machine, and (3) override the entrypoint so it starts a shell instead of
+starting the Buildbot worker. Such a file would look like this:
 
-  ```yaml
-  services:
-    buildbot-whatever:
-      volumes:
-        - /host/path/to/scummvm:/data/sharedrepo
-        - /host/path/for/build/output:/buildbot
-      entrypoint: /bin/bash
-  ```
+```yaml
+services:
+  buildbot-whatever:
+    volumes:
+      - /host/path/to/scummvm:/data/sharedrepo
+      - /host/path/for/build/output:/buildbot
+    entrypoint: /bin/bash
+```
 
-* Start a shell in the worker environment using
-  `docker-compose run --rm buildbot-whatever`
-* Run `/data/sharedrepo/configure`
-* Run `make -j$(nproc)`
+Once done, just start a shell in the worker environment using
+`docker-compose run --rm buildbot-whatever`, then run
+`/data/sharedrepo/configure` to configure and `make -j$(nproc)` to build.
 
 If you are stopping or re-upping the worker a lot you may also want to bind
 the `/data/ccache` directory of the container somewhere so that the compiler
