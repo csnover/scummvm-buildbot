@@ -1,6 +1,18 @@
 version: "3"
 
 services:
+  web:
+    image: nginx:latest
+    networks:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./web/dev-conf.d:/etc/nginx/conf.d:ro
+      - ./web/includes:/etc/nginx/includes:ro
+      - snapshots:/data/snapshots:ro
+
   buildbot:
     image: scummvm/buildbot-master:latest
     environment:
@@ -30,7 +42,7 @@ services:
       BUILDBOT_SITE_URL: https://scummvm.org/
 
       # The publicly-accessible URL of the Buildbot web service.
-      BUILDBOT_WEB_URL: http://localhost:28453/
+      BUILDBOT_WEB_URL: http://localhost/
 
       # The internal port used by the web service. Expose this through the host
       # container using docker-compose ports configuration.
@@ -62,15 +74,14 @@ services:
 
       # The publicly-accessible URL to the generated snapshots. If a URL is not
       # provided, snapshot packaging is disabled.
-      SCUMMVM_SNAPSHOTS_URL: https://buildbot.scummvm.org/snapshots/
+      SCUMMVM_SNAPSHOTS_URL: http://localhost/snapshots/
 
       # The location of worker configuration files. Relative paths are relative
       # to the directory containing master.cfg.
       SCUMMVM_WORKER_CONFIG_DIR: master/workers
-    ports:
-      - "28453:28453"
     networks:
       - buildbot
+      - web
     volumes:
       - database:/data/db
       - snapshots:/data/snapshots
@@ -263,9 +274,11 @@ services:
 volumes:
   android-home:
   ccache:
+  certs:
   database:
   repository:
   snapshots:
 
 networks:
   buildbot:
+  web:
