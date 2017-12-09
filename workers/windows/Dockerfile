@@ -58,6 +58,21 @@ RUN ./compile-libraries-windows.sh libsdl2-net
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-windows.sh mpeg2dec
 
+# All of this is for FluidSynth
+RUN apt-get install -y --no-install-recommends cmake
+
+RUN ./compile-libraries-windows.sh libffi
+
+COPY ${WORKER_NAME}/library-rules/gettext.sh library-rules/
+RUN ./compile-libraries-windows.sh gettext
+
+COPY ${WORKER_NAME}/library-rules/glib2.0.sh library-rules/
+COPY ${WORKER_NAME}/glib2.0-no-dllmain.patch ./
+RUN ./compile-libraries-windows.sh glib2.0
+
+COPY ${WORKER_NAME}/library-rules/fluidsynth.sh library-rules/
+RUN ./compile-libraries-windows.sh fluidsynth
+
 ARG SPARKLE_VERSION=0.5.7
 
 WORKDIR /tmp
@@ -88,6 +103,7 @@ RUN dpkg --add-architecture i386 && \
 		dos2unix \
 		libz-mingw-w64-dev \
 		mingw-w64 \
+		nasm \
 # For Inno Setup
 		wget \
 		wine \
