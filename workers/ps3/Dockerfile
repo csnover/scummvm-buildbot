@@ -32,9 +32,7 @@ ENV PS3DEV  /ps3dev
 ENV PSL1GHT $PS3DEV
 ENV PATH    $PATH:$PS3DEV/bin:$PS3DEV/ppu/bin:$PS3DEV/spu/bin
 
-# For now the `for-scummvm` branch of the `bgK` fork of `ps3toolchain` is used to get GCC 7.2.0.
-# Ideally those changes are merged upstream, and the main `ps3dev/ps3toolchain` repository can be used.
-RUN wget --no-check-certificate https://github.com/bgK/ps3toolchain/tarball/for-scummvm -O ps3toolchain.tar.gz \
+RUN wget https://github.com/ps3dev/ps3toolchain/archive/71e9c0222ca4f0d3041a45b6821c05f390b27fa3.tar.gz -O ps3toolchain.tar.gz \
 		&& mkdir /ps3toolchain && tar --strip-components=1 --directory=/ps3toolchain -xvzf ps3toolchain.tar.gz
 
 WORKDIR /ps3toolchain
