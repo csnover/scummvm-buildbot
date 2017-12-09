@@ -1,69 +1,55 @@
 ARG DEFAULT_BASE_IMAGE
-ARG DEFAULT_OS_IMAGE
-FROM debian:8
-LABEL maintainer="ScummVM Team <admin@scummvm.org>"
+FROM debian:8 AS compiler
 ARG WORKER_NAME
-ARG BUILDBOT_VERSION
-LABEL buildbot-version=${BUILDBOT_VERSION}
-USER root
-
-RUN apt-get update && \
-	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-		ccache \
-		git \
-		gzip \
-		make \
-		python-openssl \
-		python-pip \
-		python-twisted \
-		rsync \
-		xz-utils \
-# Install curl for installing dumb-init
-		ca-certificates \
-		curl \
-	&& curl -sLo /tmp/dumb-init.deb \
-	https://github.com/Yelp/dumb-init/releases/download/v1.0.2/dumb-init_1.0.2_amd64.deb \
-	&& dpkg -i /tmp/dumb-init.deb \
-	&& rm /tmp/dumb-init.deb \
-	rm -rf /var/lib/apt/lists/* && \
-# Install newer version of pip to be able to install a recent buildbot
-	pip install --upgrade pip && \
-	/usr/local/bin/pip install --no-cache-dir \
-		buildbot-worker==${BUILDBOT_VERSION}
-
-# Install the cross-compiler
 COPY ${WORKER_NAME}/diablo-toolchain.list /etc/apt/sources.list.d/
 RUN apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --force-yes \
 	diablo-gcc-5 \
 	diablo-package-tools \
-	make \
-	&& rm -rf /var/lib/apt/lists/* \
-	&& rm /etc/apt/sources.list.d/diablo-toolchain.list
-RUN /opt/diablo/bin/apt-get update \
-	&& /opt/diablo/bin/apt-get -y --force-yes install \
-	libsdl1.2-dev \
-	libpng12-dev \
-	libjpeg62-dev \
-	libfreetype6-dev \
-	libflac-dev \
-	libmad0-dev \
-	libmpeg2-4-dev \
-	libvorbisidec-dev \
-	&& rm -rf /opt/diablo/root/var/lib/apt/lists/*
+	&& rm -rf /var/lib/apt/lists/*
+RUN /opt/diablo/bin/apt-get update && \
+	DEBIAN_FRONTEND=noninteractive /opt/diablo/bin/apt-get -y --no-install-recommends --force-yes install \
+		libsdl1.2-dev \
+		libpng12-dev \
+		libjpeg62-dev \
+		libfreetype6-dev \
+		libflac-dev \
+		libmad0-dev \
+		libmpeg2-4-dev \
+		libvorbisidec-dev && \
+	rm -rf /opt/diablo/root/var/lib/apt/lists/*
+
+FROM ${DEFAULT_BASE_IMAGE}
+USER root
+COPY --from=compiler /opt/diablo /opt/diablo
+
+RUN apt-get update && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		libmpc3 && \
+	rm -rf /var/lib/apt/lists/*
 
 ENV PATH=$PATH:/opt/diablo/root/usr/bin:/opt/diablo/gcc-5/bin \
+	ADDR2LINE=arm-none-linux-gnueabi-addr2line \
+	AR=arm-none-linux-gnueabi-ar \
+	AS=arm-none-linux-gnueabi-as \
+	CXX=arm-none-linux-gnueabi-c++ \
+	CXXFILT=arm-none-linux-gnueabi-c++filt \
+	CPP=arm-none-linux-gnueabi-cpp \
+	ELFEDIT=arm-none-linux-gnueabi-elfedit \
+	GXX=arm-none-linux-gnueabi-g++ \
+	GCC=arm-none-linux-gnueabi-gcc \
+	GCOV=arm-none-linux-gnueabi-gcov \
+	GCOV_TOOL=arm-none-linux-gnueabi-gcov-tool \
+	GPROF=arm-none-linux-gnueabi-gprof \
+	LD=arm-none-linux-gnueabi-ld \
+	NM=arm-none-linux-gnueabi-nm \
 	OBJCOPY=arm-none-linux-gnueabi-objcopy \
+	OBJDUMP=arm-none-linux-gnueabi-objdump \
+	RANLIB=arm-none-linux-gnueabi-ranlib \
+	READELF=arm-none-linux-gnueabi-readelf \
+	SIZE=arm-none-linux-gnueabi-size \
+	STRINGS=arm-none-linux-gnueabi-strings \
 	STRIP=arm-none-linux-gnueabi-strip
-
-# Duplicate buildbot setup from default image, since we're not using that
-RUN useradd -ms /bin/bash -d /buildbot -u 2845 -U buildbot
-
-RUN mkdir -p /buildbot /data/ccache /data/sharedrepo && \
-	chown buildbot:buildbot /buildbot /data/ccache /data/sharedrepo
 
 USER buildbot
 WORKDIR /buildbot
-
-COPY common/buildbot.tac /buildbot
-CMD ["/usr/bin/dumb-init", "twistd", "-ny", "buildbot.tac"]
