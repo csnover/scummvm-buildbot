@@ -3,21 +3,6 @@ version: "3"
 services:
   web:
     restart: always
-    volumes:
-      - ./web/prod-conf.d:/etc/nginx/conf.d:ro
-      - ./web/includes:/etc/nginx/includes:ro
-      - certs:/etc/letsencrypt:ro
-      - snapshots:/data/snapshots:ro
-
-  certbot:
-    image: scummvm/certbot:latest
-    restart: always
-    networks:
-      - web
-    volumes:
-      - certs:/etc/letsencrypt
-    environment:
-      DOMAINS: buildbot.scummvm.org
 
   buildbot:
     restart: always
@@ -29,13 +14,13 @@ services:
       SCUMMVM_DEV_ENV: 0
       SCUMMVM_SNAPSHOTS_URL: https://buildbot.scummvm.org/snapshots/
 
-  buildbot-debian-x86_64:
-    restart: always
-
   buildbot-amigaos:
     restart: always
 
   buildbot-android:
+    restart: always
+
+  buildbot-debian-x86_64:
     restart: always
 
   buildbot-debian-x86:
@@ -54,6 +39,9 @@ services:
     restart: always
 
   buildbot-ios:
+    restart: always
+
+  buildbot-maemo:
     restart: always
 
   buildbot-macos:

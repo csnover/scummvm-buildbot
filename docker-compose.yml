@@ -3,14 +3,14 @@ version: "3"
 services:
   web:
     image: nginx:latest
+    depends_on:
+      - buildbot
     networks:
       - web
     ports:
       - "80:80"
-      - "443:443"
     volumes:
-      - ./web/dev-conf.d:/etc/nginx/conf.d:ro
-      - ./web/includes:/etc/nginx/includes:ro
+      - ./web/buildbot.conf:/etc/nginx/conf.d/buildbot.conf:ro
       - snapshots:/data/snapshots:ro
 
   buildbot:
@@ -282,7 +282,6 @@ services:
 volumes:
   android-home:
   ccache:
-  certs:
   database:
   repository:
   snapshots:
