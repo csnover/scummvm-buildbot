@@ -9,6 +9,8 @@ services:
       - web
     ports:
       - "80:80"
+    security_opt:
+      - no-new-privileges
     volumes:
       - ./web/buildbot.conf:/etc/nginx/conf.d/buildbot.conf:ro
       - snapshots:/data/snapshots:ro
@@ -82,6 +84,8 @@ services:
     networks:
       - buildbot
       - web
+    security_opt:
+      - no-new-privileges
     volumes:
       - database:/data/db
       - snapshots:/data/snapshots
@@ -137,6 +141,9 @@ services:
 
     networks:
       - buildbot
+
+    security_opt:
+      - no-new-privileges
 
     # The volumes list cannot be inherited in at least docker-compose 1.16, so
     # make sure to check for any reuse of volumes in any of the workers below
