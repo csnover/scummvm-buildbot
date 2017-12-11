@@ -2,14 +2,12 @@
 FROM buildbot/buildbot-master:v0.9.12
 
 RUN apk add --no-cache \
-    py-certifi \
-    py-requests \
-    shadow
-RUN useradd -ms /bin/bash -d /var/lib/buildbot -u 2845 -U buildbot && \
-    chown -R buildbot:buildbot /var/lib/buildbot
-RUN mkdir -p /data/db /data/snapshots && \
-    chown buildbot:buildbot /data/db /data/snapshots
+		py-certifi \
+		py-requests \
+		shadow && \
+	useradd -ms /bin/bash -d /var/lib/buildbot -u 2845 -U buildbot && \
+	chown -R buildbot:buildbot /var/lib/buildbot && \
+	mkdir -p /data/db /data/snapshots && \
+	chown buildbot:buildbot /data/db /data/snapshots
 USER buildbot
 WORKDIR /var/lib/buildbot
-COPY master/master.cfg .
-COPY master master

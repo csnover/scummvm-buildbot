@@ -85,16 +85,29 @@ services:
 
       # The location of worker configuration files. Relative paths are relative
       # to the directory containing master.cfg.
-      SCUMMVM_WORKER_CONFIG_DIR: master/workers
+      SCUMMVM_WORKER_CONFIG_DIR: ./config/workers
+
     networks:
       - buildbot
       - web
     security_opt:
       - no-new-privileges
+    read_only: true
+    tmpfs:
+      - /var/lib/buildbot:uid=2845,gid=2845
     volumes:
       - database:/data/db
       - snapshots:/data/snapshots
-      - ./workers:/var/lib/buildbot/master/workers:ro
+      - ./master/master.cfg:/var/lib/buildbot/master.cfg:ro
+      # Since it is not possible to mount a read only volume into another read
+      # only volume, and Buildbot reserves the `workers` directory in the root
+      # Buildbot working directory for its own Buildmaster workers, the whole
+      # configuration gets mounted into a subdirectory, which is made to look
+      # like a module namespace by giving it an empty __init__.py, and then we
+      # load data from there.
+      - ./master/__init__.py:/var/lib/buildbot/config/__init__.py:ro
+      - ./master:/var/lib/buildbot/config/master:ro
+      - ./workers:/var/lib/buildbot/config/workers:ro
       - ./secrets.cfg:/var/lib/buildbot/secrets.cfg:ro
 
   buildbot-debian-x86_64: &defaultWorker
