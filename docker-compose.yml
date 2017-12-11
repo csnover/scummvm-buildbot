@@ -140,9 +140,8 @@ services:
       # must match the password given in `secrets.cfg`.
       WORKERPASS: worker
 
-      # The name of the container's host. Currently, this value is unused, but
-      # in the future it will be used for exclusive locking of workers that
-      # run on the same container host.
+      # The name of the container's host. Used for exclusive locking of workers
+      # that run on the same container host.
       WORKER_HOST: build1
 
       # The directory where shared repository data can be accessed. This
