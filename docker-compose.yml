@@ -8,11 +8,16 @@ services:
     networks:
       - web
     ports:
-      - "80:80"
+      - "80:8000"
     security_opt:
       - no-new-privileges
+    user: nginx
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101
+      - /run:uid=101,gid=101
     volumes:
-      - ./web/buildbot.conf:/etc/nginx/conf.d/buildbot.conf:ro
+      - ./web/default.conf:/etc/nginx/conf.d/default.conf:ro
       - snapshots:/data/snapshots:ro
 
   buildbot:
