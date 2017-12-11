@@ -5,6 +5,10 @@ services:
     restart: always
 
   buildbot:
+    # https://github.com/moby/moby/issues/35134 is happening when trying to
+    # restart the Buildbot service on Debian 8
+    read_only: false
+
     restart: always
     environment:
       # BUILDBOT_IRC_CHANNEL: "#scummvm"
