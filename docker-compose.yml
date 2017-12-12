@@ -49,8 +49,7 @@ services:
       # The publicly-accessible URL of the Buildbot web service.
       BUILDBOT_WEB_URL: http://localhost/
 
-      # The internal port used by the web service. Expose this through the host
-      # container using docker-compose ports configuration.
+      # The internal port used by the web service.
       BUILDBOT_WEB_PORT: 28453 # B-U-I-L-D
 
       # The internal port used for master-worker communication. This does not
