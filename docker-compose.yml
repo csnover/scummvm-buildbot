@@ -85,7 +85,7 @@ services:
       SCUMMVM_WORKER_CONFIG_DIR: ./config/workers
 
     networks:
-      - buildbot
+      - builders
       - web
     security_opt:
       - no-new-privileges
@@ -154,7 +154,7 @@ services:
       WORKER_ENVIRONMENT_BLACKLIST: CONTAINER_HOST WORKERNAME WORKERPASS WORKER_ENVIRONMENT_BLACKLIST BUILDMASTER* DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1*
 
     networks:
-      - buildbot
+      - builders
 
     security_opt:
       - no-new-privileges
@@ -308,5 +308,5 @@ volumes:
   snapshots:
 
 networks:
-  buildbot:
+  builders:
   web:
