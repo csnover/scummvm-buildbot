@@ -1,34 +1,32 @@
 ARG DEFAULT_BASE_IMAGE
-FROM sdthirlwall/raspberry-pi-cross-compiler@sha256:f14f0bd23e766ed40ec109d9fe98aab68229b5ccce1d4acde09327549e1588d7 AS compiler
-LABEL maintainer="ScummVM Team <admin@scummvm.org>"
-USER root
-ARG WORKER_NAME
-
-RUN rpdo apt-get update && install-raspbian -y --no-install-recommends \
-		libsdl2-dev \
-		libpng12-dev \
-		zlib1g-dev \
-		libfaad-dev \
-		libflac-dev \
-		libmad0-dev \
-		libjpeg62-turbo-dev \
-		libfreetype6-dev \
-		libfluidsynth-dev \
-		libvorbisidec-dev \
-		libvorbis-dev \
-		libtheora-dev \
-		libmpeg2-4-dev \
-		libcurl4-openssl-dev \
-		libsdl2-net-dev && \
-	rpdo rm -rf /var/lib/apt/lists/*
-
 FROM ${DEFAULT_BASE_IMAGE}
 USER root
-COPY --from=compiler /rpxc /rpxc
 
-ENV PATH=$PATH:/rpxc/bin:/rpxc/sysroot/usr/bin \
-	CXXFLAGS="$CXXFLAGS --sysroot=/rpxc/sysroot" \
-	LDFLAGS="$LDFLAGS --sysroot=/rpxc/sysroot" \
+RUN dpkg --add-architecture armhf && \
+	apt-get update && \
+	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		g++-arm-linux-gnueabihf \
+		libcurl4-openssl-dev:armhf \
+		libfaad-dev:armhf \
+		libflac-dev:armhf \
+		libfluidsynth-dev:armhf \
+		libfreetype6-dev:armhf \
+		libjpeg62-turbo-dev:armhf \
+		libmad0-dev:armhf \
+		libmpeg2-4-dev:armhf \
+		libpng-dev:armhf \
+		libsdl2-dev:armhf \
+		libsdl2-net-dev:armhf \
+		libtheora-dev:armhf \
+		libvorbis-dev:armhf \
+		zlib1g-dev:armhf \
+		&& \
+	rm -rf /var/lib/apt/lists/*
+
+USER buildbot
+WORKDIR /buildbot
+
+ENV PATH=$PATH:/usr/arm-linux-gnueabihf/bin \
 	ADDR2LINE=arm-linux-gnueabihf-addr2line \
 	AR=arm-linux-gnueabihf-ar \
 	AS=arm-linux-gnueabihf-as \
@@ -54,9 +52,6 @@ ENV PATH=$PATH:/rpxc/bin:/rpxc/sysroot/usr/bin \
 	SIZE=arm-linux-gnueabihf-size \
 	STRINGS=arm-linux-gnueabihf-strings \
 	STRIP=arm-linux-gnueabihf-strip
-
-# ScummVM configure-specific
-ENV RPI_ROOT=/rpxc/sysroot
 
 USER buildbot
 WORKDIR /buildbot
