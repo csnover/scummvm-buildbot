@@ -58,6 +58,12 @@ RUN ./compile-libraries-windows.sh libsdl2-net
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-windows.sh mpeg2dec
 
+# Expat and wxWidgets are used only for ScummVM Tools
+RUN ./compile-libraries-windows.sh expat
+
+COPY ${WORKER_NAME}/library-rules/wxwidgets3.0.sh library-rules/
+RUN ./compile-libraries-windows.sh wxwidgets3.0
+
 # All of this is for FluidSynth
 RUN apt-get install -y --no-install-recommends cmake
 
@@ -104,6 +110,8 @@ RUN dpkg --add-architecture i386 && \
 		libz-mingw-w64-dev \
 		mingw-w64 \
 		nasm \
+# For ScummVM Tools
+		win-iconv-mingw-w64-dev \
 # For Inno Setup
 		wget \
 		wine \
