@@ -35,7 +35,7 @@ RUN wget --progress=bar:force:noscroll -O - http://dl.vitasdk.org/curl.tar.xz \
 # from dl.vitasdk.org is old and broken and causes builds to crash on startup
 RUN wget --progress=bar:force:noscroll -O - https://github.com/rsn8887/SDL-Vita/releases/download/2.0.8dev_20171203/sdl2_vita_20171203.tar.xz \
 	| tar --no-same-owner --no-same-permissions -C $VITASDK/arm-vita-eabi -xJf -
-RUN wget --progress=bar:force:noscroll -O - http://dl.vitasdk.org/sdl_net.tar.xz \
+RUN wget --progress=bar:force:noscroll -O - http://dl.vitasdk.org/sdl2_net.tar.xz \
 	| tar --no-same-owner --no-same-permissions -C $VITASDK/arm-vita-eabi -xJf -
 
 WORKDIR /tmp/compile
@@ -68,7 +68,7 @@ RUN ./compile-libraries-vita.sh libtheora
 COPY common/library-rules/libvorbis.sh library-rules/
 RUN ./compile-libraries-vita.sh libvorbis
 
-COPY common/library-rules/flac-no-memory-h.sh library-rules/flac.sh
+COPY ${WORKER_NAME}/library-rules/flac.sh library-rules/flac.sh
 RUN ./compile-libraries-vita.sh flac
 
 COPY common/library-rules/mpeg2dec.sh library-rules/
