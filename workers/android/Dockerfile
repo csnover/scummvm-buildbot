@@ -136,6 +136,9 @@ RUN ./compile-libraries-android.sh libsdl2
 COPY common/library-rules/libsdl2-net.sh library-rules/
 RUN ./compile-libraries-android.sh libsdl2-net
 
+COPY common/library-rules/fluidsynth-lite.sh library-rules/
+RUN ./compile-libraries-android.sh fluidsynth-lite
+
 FROM ${DEFAULT_BASE_IMAGE}
 USER root
 COPY --from=compiler /opt/android /opt/android
@@ -162,10 +165,11 @@ ENV PATH=$PATH:/opt/android/arm/bin:/opt/android/arm/arm-linux-androideabi/bin \
 	ADDR2LINE=arm-linux-androideabi-addr2line \
 	AR=arm-linux-androideabi-ar \
 	AS=arm-linux-androideabi-as \
-	CXX=arm-linux-androideabi-c++ \
+# clang++ is a wrapper script which sets up the Android API version correctly
+	CXX=arm-linux-androideabi-clang++ \
 	CXXFILT=arm-linux-androideabi-c++filt \
-	CXXFLAGS="--sysroot=/opt/android/arm/sysroot" \
-	LDFLAGS="--sysroot=/opt/android/arm/sysroot" \
+	CXXFLAGS="-isystem /opt/android/arm/arm-linux-androideabi/include" \
+	LDFLAGS="-L/opt/android/arm/arm-linux-androideabi/lib" \
 	CC=arm-linux-androideabi-clang \
 	CPP=arm-linux-androideabi-cpp \
 	DWP=arm-linux-androideabi-dwp \

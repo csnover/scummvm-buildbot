@@ -28,26 +28,27 @@ set_toolchain () {
 		export $var_name=$bin
 	done
 
-	if [ "$CC" == "" ]; then
-		if [ "$CLANG" != "" ]; then
-			export CC=$CLANG
-		elif [ "$GCC" != "" ]; then
-			export CC=$GCC
-		else
-			warning "Could not find a C compiler"
-			exit 1
-		fi
+	# Preferring non-generic compiler binary names in CC/CXX, because on at
+	# least Android, clang/clang++ are wrappers which set the correct API level,
+	# and cc/c++ are the actual compilers, and not having the correct API level
+	# screws up system headers which were changed between API versions
+
+	if [ "$CLANG" != "" ]; then
+		export CC=$CLANG
+	elif [ "$GCC" != "" ]; then
+		export CC=$GCC
+	elif [ "$CC" == "" ]; then
+		warning "Could not find a C compiler"
+		exit 1
 	fi
 
-	if [ "$CXX" == "" ]; then
-		if [ "$CLANGXX" != "" ]; then
-			export CXX=$CLANGXX
-		elif [ "$GXX" != "" ]; then
-			export CXX=$GXX
-		else
-			warning "Could not find a C++ compiler"
-			exit 1
-		fi
+	if [ "$CLANGXX" != "" ]; then
+		export CXX=$CLANGXX
+	elif [ "$GXX" != "" ]; then
+		export CXX=$GXX
+	elif [ "$CXX" == "" ]; then
+		warning "Could not find a C++ compiler"
+		exit 1
 	fi
 
 	export ACLOCAL_PATH=$prefix/share/aclocal
