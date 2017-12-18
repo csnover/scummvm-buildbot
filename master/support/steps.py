@@ -333,7 +333,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
                     compression_options = {}
                 else:
                     compression_flag = "J"
-                    compression_options = {"XZ_OPT": "-2"}
+                    compression_options = {"XZ_OPT": "-2 -T0"}
                     package_format = "tar.xz"
 
                 archiver = ["tar", "-cv%sf" % compression_flag]
@@ -352,7 +352,7 @@ class Package(BuildStep, ShellMixin, CompositeStepMixin):
             yield self.send_command(command=["tar", "-cvJf",
                                              debug_archive_filename,
                                              debug_files],
-                                    env={"XZ_OPT": "-2"},
+                                    env={"XZ_OPT": "-2 -T0"},
                                     logEnviron=False)
             # The unstripped executables need to be restored after packaging to
             # prevent crashes if the next build does not relink executables
