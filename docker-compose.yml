@@ -123,8 +123,9 @@ services:
       # The location of the worker's compiler cache.
       CCACHE_DIR: /data/ccache/debian-x86_64
 
-      # The maximum size of the worker's compiler cache.
-      CCACHE_MAXSIZE: 1G
+      # The maximum size of the worker's compiler cache. As of December 2017,
+      # one build uses between 150 and 215MB of cache.
+      CCACHE_MAXSIZE: 250Mi
 
       # The name of the worker. This is the name that will be used to generate
       # the names of builders attached to this worker, as well as the name that
