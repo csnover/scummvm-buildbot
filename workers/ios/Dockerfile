@@ -83,7 +83,11 @@ RUN ./compile-libraries-ios.sh flac
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-ios.sh mpeg2dec
 
+# Cannot install FluidSynth Lite because this platform does not have
+# clock_gettime / CLOCK_REALTIME
+
 COPY ${WORKER_NAME}/library-rules/curl.sh library-rules/
+COPY ${WORKER_NAME}/curl-ios.patch .
 # cURL will not enable DarwinSSL unless it finds the security framework in the
 # root of the disk. Also, cURL acinclude.m4 will try to add
 # -mmacosx-version-min=10.8 if it does not see anything in $CFLAGS matching
@@ -93,7 +97,11 @@ COPY ${WORKER_NAME}/library-rules/curl.sh library-rules/
 # explicitly fixes configuration by stopping cURL from adding its flag.
 RUN ln -s /opt/ioscross/SDK/iPhoneOS7.1.sdk/System /System && \
 	CFLAGS=-miphoneos-version-min=7.1 ./compile-libraries-ios.sh curl && \
-	rm /System
+	rm /System && \
+	sed -i \
+		-e 's/-Wl,-Bstatic//' \
+		-e 's/-Wl,-Bdynamic//' \
+		/opt/ioscross/bin/curl-config
 
 FROM ${DEFAULT_BASE_IMAGE}
 USER root
@@ -111,9 +119,9 @@ RUN apt-get update && \
 
 ENV LD_LIBRARY_PATH=/opt/ioscross/bin:$LD_LIBRARY_PATH \
 	PATH=$PATH:/opt/ioscross/bin \
-	CFLAGS="$CFLAGS -arch armv7" \
-	CXXFLAGS="$CXXFLAGS -arch armv7" \
-	LDFLAGS="$LDFLAGS -arch armv7" \
+	CFLAGS="$CFLAGS -arch armv7 -isystem /opt/ioscross/include" \
+	CXXFLAGS="$CXXFLAGS -arch armv7 -isystem /opt/ioscross/include" \
+	LDFLAGS="$LDFLAGS -arch armv7 -L/opt/ioscross/lib" \
 	OBJECTDUMP=arm-apple-darwin11-ObjectDump \
 	AR=arm-apple-darwin11-ar \
 	AS=arm-apple-darwin11-as \
