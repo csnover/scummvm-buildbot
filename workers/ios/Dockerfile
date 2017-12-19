@@ -83,8 +83,11 @@ RUN ./compile-libraries-ios.sh flac
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-ios.sh mpeg2dec
 
-# Cannot install FluidSynth Lite because this platform does not have
-# clock_gettime / CLOCK_REALTIME
+# Cribbing from macOS here since the underlying OS kernel is the same so the
+# patchset is the same
+COPY macos/library-rules/fluidsynth-lite.sh library-rules/
+COPY macos/fluidsynth-lite-macos.patch ./
+RUN ./compile-libraries-ios.sh fluidsynth-lite
 
 COPY ${WORKER_NAME}/library-rules/curl.sh library-rules/
 COPY ${WORKER_NAME}/curl-ios.patch .
