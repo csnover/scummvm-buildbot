@@ -73,6 +73,10 @@ COPY common/compile-libraries.sh ${WORKER_NAME}/compile-libraries-macos.sh ./
 COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-macos.sh mpeg2dec
 
+COPY ${WORKER_NAME}/library-rules/fluidsynth-lite.sh library-rules/
+COPY ${WORKER_NAME}/fluidsynth-lite-macos.patch ./
+RUN ./compile-libraries-macos.sh fluidsynth-lite
+
 FROM ${DEFAULT_BASE_IMAGE}
 USER root
 ARG WORKER_NAME
