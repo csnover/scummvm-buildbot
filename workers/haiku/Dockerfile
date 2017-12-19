@@ -132,6 +132,9 @@ RUN wget --progress=bar:force:noscroll -O pkg.hpkg \
 	package extract -C /system pkg.hpkg && \
 	rm pkg.hpkg
 
+# There does not seem to be an non-gcc2 x86 package for FluidSynth, so it is
+# not available for now
+
 RUN sed -i 's#/packages/libsdl2-2.0.5-3/.self#/system#g' /system/bin/sdl2-config
 RUN sed -e 's#/packages/freetype-2.7.1-1/.self#/system#g' \
 		-e 's#/packages/libpng16-1.6.29-1/.self/lib#/system/develop/lib#g' \

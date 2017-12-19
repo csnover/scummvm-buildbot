@@ -74,6 +74,9 @@ RUN ./compile-libraries-amigaos.sh flac
 COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-amigaos.sh mpeg2dec
 
+# Cannot install FluidSynth Lite because this platform’s C standard library does
+# not support C11
+
 # TODO: OpenSSL & cURL
 
 ARG SDL_URL=https://sourceforge.net/projects/sdl2-amigaos4/files/SDL2_SDK_r177.lha/download

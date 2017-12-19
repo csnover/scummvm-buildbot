@@ -83,8 +83,14 @@ RUN ./compile-libraries-freemint.sh libvorbis
 COPY common/library-rules/flac.sh library-rules/
 RUN ./compile-libraries-freemint.sh flac
 
-COPY common/library-rules/curl.sh library-rules/
-RUN ./compile-libraries-freemint.sh curl
+# Cannot install mpeg2dec because
+# alignment of 'dither' is greater than maximum object file alignment 2
+
+# Cannot install FluidSynth Lite because this platform’s C standard library does
+# not support C11
+
+# Cannot install OpenSSL because it does not have a valid target for this
+# platform. libcurl is also not installed since it is useless without SSL
 
 FROM ${DEFAULT_BASE_IMAGE}
 USER root

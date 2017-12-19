@@ -60,15 +60,13 @@ RUN ./compile-libraries-nintendo.sh flac
 COPY common/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-nintendo.sh mpeg2dec
 
+# Cannot install FluidSynth Lite because this toolchain does not seem to include
+# any resolvable pthreads implementation
+
 COPY ${WORKER_NAME}/library-rules/libgxflux.sh library-rules/
 RUN ./compile-libraries-nintendo.sh libgxflux
 
-# glibc       # configure fails, unsupported architecture
-# curl        # configure fails, gethostbyname missing (from glibc)
-# glib2.0     # configure fails, iconv missing (from glibc)
-# fluidsynth  # can't build, needs glib2.0
-# libsdl2     # not used on this platform
-# libsdl2-net # not used on this platform
+# libcurl configure fails, gethostbyname is missing
 
 FROM ${DEFAULT_BASE_IMAGE}
 USER root
