@@ -152,7 +152,7 @@ services:
       # Buildbot worker. This functionality assuming you are using the standard
       # `buildbot.tac` template, because this is the file responsible for
       # clearing the environment variables when the Buildbot worker starts.
-      WORKER_ENVIRONMENT_BLACKLIST: CONTAINER_HOST WORKERNAME WORKERPASS WORKER_ENVIRONMENT_BLACKLIST BUILDMASTER* DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1*
+      WORKER_ENVIRONMENT_BLACKLIST: WORKERNAME WORKERPASS WORKER_ENVIRONMENT_BLACKLIST BUILDMASTER* DOCKER_BUILDBOT* BUILDBOT_ENV_* BUILDBOT_1*
 
     networks:
       - builders
