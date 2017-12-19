@@ -107,7 +107,7 @@ services:
       - ./workers:/var/lib/buildbot/config/workers:ro
       - ./secrets.cfg:/var/lib/buildbot/secrets.cfg:ro
 
-  buildbot-debian-x86_64: &defaultWorker
+  debian-x86_64: &defaultWorker
     image: scummvm/buildbot-debian-x86_64:latest
     environment: &defaultEnv
       # The IP address or hostname of the buildmaster.
@@ -167,7 +167,7 @@ services:
       - ccache:/data/ccache
       - repository:/data/sharedrepo
 
-  buildbot-amigaos:
+  amigaos:
     <<: *defaultWorker
     image: scummvm/buildbot-amigaos:latest
     environment:
@@ -175,7 +175,7 @@ services:
       CCACHE_DIR: /data/ccache/amigaos
       WORKERNAME: amigaos
 
-  buildbot-android:
+  android:
     <<: *defaultWorker
     image: scummvm/buildbot-android:latest
     environment:
@@ -189,7 +189,7 @@ services:
       - ccache:/data/ccache
       - repository:/data/sharedrepo
 
-  buildbot-debian-x86:
+  debian-x86:
     <<: *defaultWorker
     image: scummvm/buildbot-debian-x86:latest
     environment:
@@ -197,7 +197,7 @@ services:
       CCACHE_DIR: /data/ccache/debian-x86
       WORKERNAME: debian-x86
 
-  buildbot-dreamcast:
+  dreamcast:
     <<: *defaultWorker
     image: scummvm/buildbot-dreamcast:latest
     environment:
@@ -205,7 +205,7 @@ services:
       CCACHE_DIR: /data/ccache/dreamcast
       WORKERNAME: dreamcast
 
-  buildbot-freemint:
+  freemint:
     <<: *defaultWorker
     image: scummvm/buildbot-freemint:latest
     environment:
@@ -213,7 +213,7 @@ services:
       CCACHE_DIR: /data/ccache/freemint
       WORKERNAME: freemint
 
-  buildbot-gcw0:
+  gcw0:
     <<: *defaultWorker
     image: scummvm/buildbot-gcw0:latest
     environment:
@@ -221,7 +221,7 @@ services:
       CCACHE_DIR: /data/ccache/gcw0
       WORKERNAME: gcw0
 
-  buildbot-haiku:
+  haiku:
     <<: *defaultWorker
     image: scummvm/buildbot-haiku:latest
     environment:
@@ -229,7 +229,7 @@ services:
       CCACHE_DIR: /data/ccache/haiku
       WORKERNAME: haiku
 
-  buildbot-ios:
+  ios:
     <<: *defaultWorker
     image: scummvm/buildbot-ios:latest
     environment:
@@ -237,7 +237,7 @@ services:
       CCACHE_DIR: /data/ccache/ios
       WORKERNAME: ios
 
-  buildbot-macos:
+  macos:
     <<: *defaultWorker
     image: scummvm/buildbot-macos:latest
     environment:
@@ -245,7 +245,7 @@ services:
       CCACHE_DIR: /data/ccache/macos
       WORKERNAME: macos
 
-  buildbot-nintendo:
+  nintendo:
     <<: *defaultWorker
     image: scummvm/buildbot-nintendo:latest
     environment:
@@ -253,7 +253,7 @@ services:
       CCACHE_DIR: /data/ccache/nintendo
       WORKERNAME: nintendo
 
-  buildbot-maemo:
+  maemo:
     <<: *defaultWorker
     image: scummvm/buildbot-maemo:latest
     environment:
@@ -261,7 +261,7 @@ services:
       CCACHE_DIR: /data/ccache/maemo
       WORKERNAME: maemo
 
-  buildbot-psp:
+  psp:
     <<: *defaultWorker
     image: scummvm/buildbot-psp:latest
     environment:
@@ -269,7 +269,7 @@ services:
       CCACHE_DIR: /data/ccache/psp
       WORKERNAME: psp
 
-  buildbot-ps3:
+  ps3:
     <<: *defaultWorker
     image: scummvm/buildbot-ps3:latest
     environment:
@@ -277,7 +277,7 @@ services:
       CCACHE_DIR: /data/ccache/ps3
       WORKERNAME: ps3
 
-  buildbot-raspberrypi:
+  raspberrypi:
     <<: *defaultWorker
     image: scummvm/buildbot-raspberrypi:latest
     environment:
@@ -285,7 +285,7 @@ services:
       CCACHE_DIR: /data/ccache/raspberrypi
       WORKERNAME: raspberrypi
 
-  buildbot-vita:
+  vita:
     <<: *defaultWorker
     image: scummvm/buildbot-vita:latest
     environment:
@@ -293,7 +293,7 @@ services:
       CCACHE_DIR: /data/ccache/vita
       WORKERNAME: vita
 
-  buildbot-windows:
+  windows:
     <<: *defaultWorker
     image: scummvm/buildbot-windows:latest
     environment:
