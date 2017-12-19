@@ -10,6 +10,7 @@ RUN sed 's/^deb \(.*\)/deb-src \1/' /etc/apt/sources.list \
 		> /etc/apt/sources.list.d/debsrc.list && \
 	apt-get update && \
 	DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+		cmake \
 		dpkg-dev \
 		libz-mingw-w64-dev \
 		mingw-w64 \
@@ -58,26 +59,14 @@ RUN ./compile-libraries-windows.sh libsdl2-net
 COPY ${WORKER_NAME}/library-rules/mpeg2dec.sh library-rules/
 RUN ./compile-libraries-windows.sh mpeg2dec
 
+COPY ${WORKER_NAME}/library-rules/fluidsynth-lite.sh library-rules/
+RUN ./compile-libraries-windows.sh fluidsynth-lite
+
 # Expat and wxWidgets are used only for ScummVM Tools
 RUN ./compile-libraries-windows.sh expat
 
 COPY ${WORKER_NAME}/library-rules/wxwidgets3.0.sh library-rules/
 RUN ./compile-libraries-windows.sh wxwidgets3.0
-
-# All of this is for FluidSynth
-RUN apt-get install -y --no-install-recommends cmake
-
-RUN ./compile-libraries-windows.sh libffi
-
-COPY ${WORKER_NAME}/library-rules/gettext.sh library-rules/
-RUN ./compile-libraries-windows.sh gettext
-
-COPY ${WORKER_NAME}/library-rules/glib2.0.sh library-rules/
-COPY ${WORKER_NAME}/glib2.0-no-dllmain.patch ./
-RUN ./compile-libraries-windows.sh glib2.0
-
-COPY ${WORKER_NAME}/library-rules/fluidsynth.sh library-rules/
-RUN ./compile-libraries-windows.sh fluidsynth
 
 ARG SPARKLE_VERSION=0.5.7
 
@@ -144,7 +133,8 @@ RUN wget --progress=bar:force:noscroll -O innosetupsetup.exe \
 		-O "/buildbot/.wine/drive_c/Program Files/Inno Setup 5/Languages/Swedish.isl" \
 		https://raw.github.com/jrsoftware/issrc/master/Files/Languages/Unofficial/Swedish.isl
 
-ENV LDFLAGS="$LDFLAGS -static-libgcc"
+ENV CFLAGS="$CFLAGS -DFLUIDSYNTH_NOT_A_DLL" \
+	CXXFLAGS="$CXXFLAGS -DFLUIDSYNTH_NOT_A_DLL"
 
 USER buildbot
 WORKDIR /buildbot
