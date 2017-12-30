@@ -33,7 +33,7 @@ RUN wget --progress=bar:force:noscroll -O - http://dl.vitasdk.org/curl.tar.xz \
 	| tar --no-same-owner --no-same-permissions -C $VITASDK/arm-vita-eabi -xJf -
 # We need this up-to-date, fixed binary release of SDL2 for Vita because the one
 # from dl.vitasdk.org is old and broken and causes builds to crash on startup
-RUN wget --progress=bar:force:noscroll -O - https://github.com/rsn8887/SDL-Vita/releases/download/2.0.8dev_20171203/sdl2_vita_20171203.tar.xz \
+RUN wget --progress=bar:force:noscroll -O - https://github.com/rsn8887/SDL-Vita/releases/download/2.0.8dev_vita_rsn8887_git_20180117/sdl2_vita_20180117.tar.xz \
 	| tar --no-same-owner --no-same-permissions -C $VITASDK/arm-vita-eabi -xJf -
 RUN wget --progress=bar:force:noscroll -O - http://dl.vitasdk.org/sdl2_net.tar.xz \
 	| tar --no-same-owner --no-same-permissions -C $VITASDK/arm-vita-eabi -xJf -
